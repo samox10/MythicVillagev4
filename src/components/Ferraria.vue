@@ -258,7 +258,7 @@ const corTier = (t) => ({'F':'#8A8A8A','E':'#659665','D':'#71c404','C':'#475fad'
     
     <div class="header-titulo-aba">
         <div class="titulo-nivel">
-            <h2>⚒️ Ferraria</h2>
+            <h2>⚒️ Forja</h2>
         </div>
         <div class="info-nivel">
             <span class="badge-nivel">Nível {{ jogo.ferraria }}</span>
@@ -1415,11 +1415,17 @@ const corTier = (t) => ({'F':'#8A8A8A','E':'#659665','D':'#71c404','C':'#475fad'
 
 /* --- ITEM ATIVO (CRAFTANDO) --- */
 .quadrado-slot.item-ativo {
-    background: #fff;
-    border-color: #e67e22;
-    cursor: pointer;
-    /* Animação de "Respiração" na borda/sombra */
-    animation: bordaPulsante 2s infinite ease-in-out;
+    background: linear-gradient(
+    to bottom,
+    #f8f9fa,
+    #e9ecef
+  );
+
+  border: 2px solid #ccd1d6;
+
+  box-shadow:
+    0 3px 6px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
 .quadrado-slot.item-ativo:hover {
@@ -1427,62 +1433,130 @@ const corTier = (t) => ({'F':'#8A8A8A','E':'#659665','D':'#71c404','C':'#475fad'
 }
 
 .img-slot-pulsante {
-    width: 70%;
-    height: 70%;
+    width: 80%;
+    height: 80%;
     object-fit: contain;
     /* Animação de Luz na Imagem */
-    animation: luzInterna 2s infinite ease-in-out;
 }
 
 /* --- TOOLTIP (O BALÃO QUE ABRE) --- */
 .tooltip-progresso {
     position: absolute;
-    bottom: 75px; /* Fica acima do quadrado */
+    bottom: 75px;
     left: 50%;
-    transform: translateX(-50%); /* Centraliza com o quadrado */
-    
-    width: 200px;
-    background: #2c3e50;
-    color: #fff;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transform: translateX(-50%);
+
+    width: 210px;
+
+    background: linear-gradient(
+        to bottom,
+        #f8f9fb,
+        #eef2f6
+    );
+
+    color: #2c3e50;
+    padding: 12px;
+
+    border-radius: 14px;
+    border: 1px solid #d5dde5;
+
+    box-shadow:
+        0 6px 16px rgba(0,0,0,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+
     z-index: 100;
+
     display: flex;
     flex-direction: column;
     gap: 8px;
+
     animation: slideUp 0.2s ease-out;
 }
 
-/* Setinha do balão */
+/* Setinha */
 .tooltip-seta {
     position: absolute;
-    bottom: -6px;
+    bottom: -7px;
     left: 50%;
-    margin-left: -6px;
-    width: 0; height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #2c3e50;
+    transform: translateX(-50%);
+
+    width: 0;
+    height: 0;
+
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid #eef2f6;
 }
 
+/* Header */
 .tooltip-header {
-    display: flex; justify-content: space-between; align-items: center; font-size: 0.8em; font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    font-size: 0.78em;
+    font-weight: 600;
+    color: #2c3e50;
 }
+
+/* Barra */
 .barra-fundo-tooltip {
-    width: 100%; height: 6px; background: #34495e; border-radius: 3px;
+    width: 100%;
+    height: 7px;
+
+    background: #dfe6ee;
+    border-radius: 4px;
+    overflow: hidden;
 }
+
 .barra-fill-tooltip {
-    height: 100%; background: #e67e22; border-radius: 3px; transition: width 1s linear;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        #f39c12,
+        #ffb84d
+    );
+
+    border-radius: 4px;
+    transition: width 1s linear;
 }
+
+/* Ações */
 .tooltip-acoes {
-    display: flex; gap: 5px; margin-top: 5px;
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
 }
+
+/* Botões */
 .btn-tooltip {
-    flex: 1; border: none; padding: 4px; border-radius: 4px; font-size: 0.75em; font-weight: bold; cursor: pointer;
+    flex: 1;
+    border: none;
+
+    padding: 5px 6px;
+    border-radius: 6px;
+
+    font-size: 0.72em;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    background: #e9edf2;
+    color: #2c3e50;
+
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.12);
 }
-.btn-tooltip.cancelar { background: #c0392b; color: white; }
-.btn-tooltip.acelerar { background: #f1c40f; color: #2c3e50; }
+
+.btn-tooltip.cancelar {
+    background: #f2dede;
+    color: #a94442;
+}
+
+.btn-tooltip.acelerar {
+    background: #fde9c9;
+    color: #9c5a00;
+}
+
 
 /* --- ANIMAÇÕES SUTIS --- */
 @keyframes luzInterna {

@@ -105,6 +105,7 @@ const itensIniciais = {}; tabelaItens.forEach(i => itensIniciais[i.id] = 0);
 
 // --- ESTADO DO JOGO ---
 export const jogo = reactive({
+    tempoOciosidadeFila: 0,
     madeira: 100, comida: 100, ouro: 500, ciencia: 0, couro: 0,
     funcionarios: [],
 
@@ -803,17 +804,56 @@ export function iniciarLoop() {
         // O Slot 1 fica "esperando" o 0 acabar.
         
         if (jogo.estudos && jogo.estudos.length > 0) {
+            // --- LÓGICA DE FILA AUTOMÁTICA (COM DELAY DE 8s) ---
+            // Verifica: Se o Centro (0) está VAZIO e a Fila (1) tem ITEM
+            if (!jogo.estudos[0].item && jogo.estudos[1].item) {
+                
+                // Começa a contar o tempo
+                jogo.tempoOciosidadeFila = (jogo.tempoOciosidadeFila || 0) + deltaSegundos;
+                
+                // Se passar de 8 segundos
+                if (jogo.tempoOciosidadeFila >= 8) {
+                    // Puxa a fila (O 1 vira 0, o 2 vira 1, etc)
+                    jogo.estudos.shift();
+                    // Adiciona um vazio no final pra manter 4 slots
+                    jogo.estudos.push({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 });
+                    // Reseta o timer
+                    jogo.tempoOciosidadeFila = 0;
+                }
+        } else {
+            // Se o centro encheu (você colocou algo) ou a fila acabou, zera o timer
+            jogo.tempoOciosidadeFila = 0;
+        }
+        // -----------------------------------------------------
             // Olha apenas para o primeiro da fila
             const slotAtual = jogo.estudos[0];
 
             if (slotAtual && slotAtual.item) {
-                // Diminui o tempo baseado no DELTA real (segundos reais)
-                // Não multiplicamos mais pela sabedoria aqui, pois já dividimos o tempo total na hora de iniciar.
+                // Diminui o tempo
                 slotAtual.tempoRestante -= deltaSegundos;
 
-                // Atualiza Barra
+                // Atualiza Barra de Progresso
                 slotAtual.progresso = 100 - ((slotAtual.tempoRestante / slotAtual.tempoTotal) * 100);
 
+                // --- NOVO CÓDIGO: VERIFICA SE ACABOU ---
+                if (slotAtual.tempoRestante <= 0) {
+                    
+                    // 1. Pega os dados do item (XP, Nome, etc)
+                    const dadosItem = DADOS_ESTUDO[slotAtual.item];
+                    
+                    if (dadosItem) {
+                        // 2. Dá a recompensa
+                        jogo.ciencia += dadosItem.xp;
+                        // console.log("Estudo concluído!");
+                    }
+
+                    // 3. MÁGICA DA FILA: .shift()
+                    // Remove o item da posição [0]. O item da posição [1] vira [0] automaticamente!
+                    jogo.estudos.shift(); 
+
+                    // 4. Adiciona um slot vazio no final para manter sempre 4 vagas
+                    jogo.estudos.push({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 });
+                }
             }
         }
 

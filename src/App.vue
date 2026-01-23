@@ -217,14 +217,8 @@ body {
   padding-bottom: 30px;
   
   /* MUDANÇA: Fundo Branco Levemente Translúcido */
-  background: #f1f1f1; 
+  background: #f1f1f1;
   
-  /* Sombra para destacar do wallpaper */
-  
-  position: relative;
-  
-  /* MUDANÇA: Texto Escuro para contraste no fundo branco */
-  color: #2c3e50; 
 }
 
 /* --- CABEÇALHO --- */

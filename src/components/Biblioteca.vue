@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { jogo, DADOS_ESTUDO, mostrarAviso } from '../jogo.js'; // Importe DADOS_ESTUDO
+import { jogo, DADOS_ESTUDO, mostrarAviso, obterBuffRaca } from '../jogo.js'; // Importe DADOS_ESTUDO
 
 const equipeExpandida = ref(false); // Começa "true" (Aberto)
 // Verifica se tem QUALQUER slot com item sendo estudado
@@ -102,23 +102,30 @@ const abrirSelecaoItem = (index) => {
 };
 
 const iniciarEstudo = (itemObj) => {
-    const index = slotItemSelecionado.value;
+    // --- LÓGICA NOVA (AUTO-ORGANIZAÇÃO) ---
+    // Em vez de usar o slot clicado, procuramos o PRIMEIRO slot vazio na lista toda (0, 1, 2 ou 3)
+    const index = jogo.estudos.findIndex(s => !s.item);
 
-    // Se o slot anterior (0) estiver vazio e tentarmos por no (1), forçamos ir para o (0)
-    // Isso ajuda a manter a fila organizada
+    // Segurança: Se por acaso tudo estiver cheio (retornar -1), paramos aqui.
+    if (index === -1) {
+        mostrarAviso("Fila Cheia", "Aguarde um estudo terminar."); 
+        return;
+    }
+    
+    // --- FIM DA LÓGICA NOVA ---
 
     if (jogo.itens[itemObj.id] > 0) {
         jogo.itens[itemObj.id]--;
 
-        // CÁLCULO NOVO: Divide o tempo pela velocidade AGORA.
-        // Ex: 60 segundos / 2x velocidade = 30 segundos totais.
+        // CÁLCULO DE VELOCIDADE (MANTIDO)
         const velAtual = velocidadeEstudo.value > 0 ? velocidadeEstudo.value : 1;
         const tempoReduzido = itemObj.tempo / velAtual;
 
-        jogo.estudos[0] = {
+        // Salva no slot encontrado (index)
+        jogo.estudos[index] = {
             item: itemObj.id,
-            tempoTotal: tempoReduzido,     // Salva o tempo já reduzido
-            tempoRestante: tempoReduzido,  // Começa do tempo reduzido
+            tempoTotal: tempoReduzido,     
+            tempoRestante: tempoReduzido,  
             progresso: 0
         };
         modalItemAberto.value = false;
@@ -127,22 +134,61 @@ const iniciarEstudo = (itemObj) => {
 
 const cancelarEstudo = (index) => {
     const slot = jogo.estudos[index];
+    
+    // Verifica se tem item para cancelar
     if (slot.item) {
-        // Devolve o item (Opcional: Se quiser punir, não devolve)
+        // 1. Devolve o item para o inventário
         jogo.itens[slot.item]++;
         
-        // Reseta slot
-        slot.item = null;
-        slot.progresso = 0;
+        // 2. Lógica Inteligente de Remoção
+        if (index === 0) {
+            // CASO 1: Cancelou o do CENTRO (Estudo Ativo)
+            // Apenas limpamos os dados. O "buraco" fica ali por 10s
+            // para dar tempo de você colocar outro prioritário se quiser.
+            // (Quem cuida de puxar a fila depois é o jogo.js)
+            slot.item = null;
+            slot.progresso = 0;
+            slot.tempoTotal = 0;
+            slot.tempoRestante = 0;
+            
+        } else {
+            // CASO 2: Cancelou da FILA
+            // Aqui não queremos buracos! Removemos o slot inteiro.
+            // O comando .splice() remove o item e automaticamente "empurra" 
+            // os itens de baixo para cima (o 2 vira 1, o 3 vira 2).
+            jogo.estudos.splice(index, 1);
+            
+            // Como removemos um slot, precisamos adicionar um novo vazio 
+            // no final para a fila continuar tendo 4 espaços.
+            jogo.estudos.push({ 
+                item: null, 
+                tempoTotal: 0, 
+                tempoRestante: 0, 
+                progresso: 0 
+            });
+        }
     }
 };
-
 // Formatar tempo (segundos -> MM:SS)
 const formatarTempo = (s) => {
     if (s <= 0) return "00:00";
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${m}:${sec.toString().padStart(2, '0')}`;
+};
+// --- HELPERS VISUAIS PARA O NOVO MODAL ---
+const getSabedoriaBase = (func) => func.bonus.toFixed(2);
+
+const getBonusLorde = (func) => {
+    const buffPercent = obterBuffRaca(func); // Retorna ex: 10 (que é 10%)
+    const valorExtra = func.bonus * (buffPercent / 100);
+    return valorExtra > 0 ? valorExtra.toFixed(2) : 0;
+};
+
+const getSabedoriaTotal = (func) => {
+     const buffPercent = obterBuffRaca(func);
+     const multiplicador = 1 + (buffPercent / 100);
+     return (func.bonus * multiplicador).toFixed(2);
 };
 </script>
 
@@ -259,12 +305,11 @@ const formatarTempo = (s) => {
     </div>
     </div>
 
-    <div class="divisor-secao">Mesas de Estudo</div>
+    <div class="divisor-secao">⚛️ Pontos Atuais: <b>{{ Math.floor(jogo.ciencia).toLocaleString() }}</b></div>
 
-    <div class="mesa-estudos rpg-container">
-        
+    <div class="mesa-estudos rpg-container">        
         <div class="info-ciencia-total">
-            ⚛️ Pontos Atuais: <b>{{ Math.floor(jogo.ciencia).toLocaleString() }}</b>
+            
         </div>
 
         <div class="area-trabalho-flex">
@@ -335,19 +380,52 @@ const formatarTempo = (s) => {
         </div>
 
     <div v-if="modalFuncionarioAberto" class="modal-overlay" @click.self="modalFuncionarioAberto = false">
-        <div class="modal-content">
-            <h3>Alocar Acadêmico</h3>
-            <div v-if="academicosDisponiveis.length === 0" class="aviso-vazio">Sem acadêmicos disponíveis.</div>
-            <div class="lista-selecao">
-                <div v-for="func in academicosDisponiveis" :key="func.id" class="item-lista" @click="alocarFunc(func)">
-                    <img :src="func.img || '/assets/ui/i_academico.png'" width="30">
-                    <div>
-                        <strong>{{ func.nome }}</strong>
-                        <div class="stat-sabedoria">Sabedoria: {{ func.bonus.toFixed(2) }}</div>
+        <div class="modal-selecao">
+            <div class="modal-header">
+                <h3>Selecionar Acadêmico</h3>
+                <button class="btn-fechar-topo" @click="modalFuncionarioAberto = false">✖</button>
+            </div>
+            
+            <div class="modal-content-scroll">
+                <button v-if="jogo.alocacaoBiblioteca[slotFuncionarioSelecionado]" 
+                        class="btn-remover" @click="desalocarFunc(slotFuncionarioSelecionado); modalFuncionarioAberto = false">
+                    ❌ Remover do Cargo
+                </button>
+
+                <div v-if="academicosDisponiveis.length === 0" class="sem-candidatos">
+                    <p>Nenhum acadêmico disponível.</p>
+                    <small>Contrate mais na Taverna ou libere de outros slots.</small>
+                </div>
+
+                <div v-for="func in academicosDisponiveis" :key="func.id" 
+                     class="card-candidato" 
+                     :class="{ 'em-greve': func.diasEmGreve > 0 }"
+                     @click="alocarFunc(func)">
+                    
+                    <div class="img-wrapper">
+                        <img :src="`/assets/faces/${func.raca}/${func.imagem}.png`">
+                        <span class="badge-tier-mini" :class="func.tier">{{ func.tier }}</span>
+                    </div>
+                    
+                    <div class="info-candidato">
+                        <div class="nome-cand">{{ func.nome }}</div>
+                        <div class="bonus-row">
+                            <span>Sabedoria: </span>
+                            <strong class="roxo">{{ getSabedoriaTotal(func) }}</strong>
+                        </div>
+                        <div class="bonus-detalhe">
+                            Base: {{ getSabedoriaBase(func) }}
+                            
+                            <span v-if="getBonusLorde(func) > 0" class="buff-raca">
+                                + {{ getBonusLorde(func) }} (Lorde)
+                            </span>
+                        </div>
+                         <div v-if="func.diasEmGreve > 0" class="tag-greve-lista">
+                            ⚠️ EM GREVE
+                        </div>
                     </div>
                 </div>
             </div>
-            <button class="btn-fechar" @click="modalFuncionarioAberto = false">Fechar</button>
         </div>
     </div>
 
@@ -440,7 +518,7 @@ const formatarTempo = (s) => {
     width: 100%;
     
     /* MUDANÇA: Definimos uma altura fixa que bate com o tamanho visual do pilar */
-    height: 200px; 
+    height: 260px; 
     
     background: transparent; 
     border: none;
@@ -455,8 +533,10 @@ const formatarTempo = (s) => {
 
 /* O hover permanece igual, mas agora respeitará o formato acima */
 .estudo-vazio:hover {
-    background-color: rgba(255, 255, 255, 0.1); 
-    box-shadow: 0 0 25px rgba(255, 255, 255, 0.15); /* Aumentei um pouco o brilho externo */
+    /* 1. Removemos o fundo branco chapado */
+    background-color: transparent; 
+                
+    cursor: pointer;
 }
 .icone-add-livro { font-size: 1.8em; margin-bottom: 5px; }
 
@@ -740,8 +820,8 @@ const formatarTempo = (s) => {
         margin-top: 80px !important; /* Aumente este número para descer mais, diminua para subir */
         
         /* Opcional: Se o item estiver muito grande no celular, você pode reduzir aqui também */
-        width: 140px !important; 
-        height: 140px !important;
+        width: 60px !important; 
+        height: 60px !important;
     }
     .slot-estudo.rpg-slot {
         width: 100% !important;
@@ -768,6 +848,70 @@ const formatarTempo = (s) => {
         /* Aumenta a largura para ficar mais bonito no celular */
         width: 70% !important; 
         max-width: none !important; 
+    }
+    /* 1. A caixa vertical (fundo escuro) que segura a fila */
+    .coluna-fila-vertical {
+        width: 50px !important; /* Era 80px, agora fica bem mais fina */
+        min-height: 160px !important; /* Um pouco mais baixa */
+        padding: 8px 2px !important; /* Menos preenchimento interno */
+        gap: 6px !important; /* Espaço menor entre os itens */
+    }
+
+    /* 2. Os quadradinhos onde o item fica (Slots da Fila) */
+    .slot-fila {
+        width: 38px !important;  /* Reduzi de 50px para 38px */
+        height: 38px !important; /* Quadrado perfeito menor */
+        border-radius: 6px !important; /* Bordas levemente menos redondas */
+    }
+
+    /* 3. A imagem do item dentro da fila */
+    .img-mini-fila {
+        width: 26px !important;  /* Reduzi a imagem para caber no quadrado novo */
+        height: 26px !important;
+    }
+
+    /* 4. O texto "FILA" */
+    .titulo-fila {
+        font-size: 0.55em !important; /* Texto bem pequeno para não estourar */
+        margin-bottom: 2px !important;
+    }
+
+    /* 5. O botãozinho "X" vermelho de cancelar */
+    .btn-cancelar-fila {
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 8px !important;
+        top: -4px !important;
+        right: -4px !important;
+    }
+
+    /* 6. Ajuste no + quando está vazio */
+    .fila-vazia {
+        font-size: 1.0em !important; /* O "+" fica menor */
+        padding-bottom: 1px !important;
+    }
+    .rpg-btn-close {
+        /* 1. Posicionamento "dentro" da imagem */
+        top: 55px !important;   
+        right: 45px !important; 
+        
+        /* 2. Tamanho ajustado para mobile */
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 10px !important;
+        
+        /* 3. MANTEMOS INVISÍVEL POR PADRÃO (comportamento desktop) */
+        /* O botão só vai aparecer quando o pai (.slot-estudo) for tocado/clicado */
+        z-index: 100 !important;
+    }
+
+    /* 4. "HOVER" NO CELULAR:
+       Adicionamos isso para garantir que, quando você TOCAR no slot (active),
+       o botão apareça imediatamente, simulando o mouse do PC. */
+    .slot-estudo:active .rpg-btn-close,
+    .slot-estudo:focus .rpg-btn-close {
+        opacity: 1 !important;
+        transform: scale(1) !important;
     }
 }
 
@@ -832,7 +976,7 @@ const formatarTempo = (s) => {
 .estudo-ativo.rpg-ativo {
     background: transparent;
     border: none;
-    padding: 2px;
+    padding: 62px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -849,8 +993,8 @@ const formatarTempo = (s) => {
 }
 
 .img-item-rpg {
-    width: 200px; /* Tamanho do item */
-    height: 200px;
+    width: 80px; /* Tamanho do item */
+    height: 80px;
     object-fit: contain;
     animation: flutuar 4s ease-in-out infinite; /* Item sobe e desce */
 }
@@ -959,8 +1103,8 @@ const formatarTempo = (s) => {
 
 .barra-externa {
     width: 100%; height: 100%;
-    background: #2c3e50;
-    border: 2px solid #95a5a6;
+    background: #dcdcdc;
+    border: 2px solid #ffffff;
     border-radius: 6px;
     position: relative; overflow: hidden;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
@@ -1001,4 +1145,108 @@ const formatarTempo = (s) => {
     z-index: 10;
 }
 .btn-cancelar-fila:hover { background: #e74c3c; transform: scale(1.1); }
+/* --- ESTILO DO NOVO MODAL (IGUAL MINA) --- */
+.modal-selecao {
+    background: white;
+    width: 95%;
+    max-width: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.modal-header {
+    background: #2c3e50;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.modal-header h3 { margin: 0; font-size: 1.1em; }
+
+.btn-fechar-topo {
+    background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;
+}
+
+.modal-content-scroll {
+    padding: 10px;
+    overflow-y: auto;
+    background: #f1f2f6;
+    display: flex; flex-direction: column; gap: 8px;
+}
+
+.btn-remover {
+    width: 100%;
+    padding: 12px;
+    background: #ff7675;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.sem-candidatos {
+    text-align: center; color: #7f8c8d; padding: 20px;
+}
+
+/* CARD CANDIDATO */
+.card-candidato {
+    background: white;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #dfe6e9;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.card-candidato:hover {
+    border-color: #8e44ad; /* Roxo da Biblioteca */
+    background: #fdfbff;
+    transform: translateX(2px);
+}
+
+.img-wrapper {
+    position: relative;
+    width: 50px; height: 50px;
+}
+.img-wrapper img {
+    width: 100%; height: 100%; border-radius: 6px; border: 1px solid #bdc3c7;
+}
+
+.badge-tier-mini {
+    position: absolute; bottom: -2px; right: -2px;
+    font-size: 0.7em; padding: 1px 4px; border-radius: 4px;
+    color: white; font-weight: bold; text-shadow: 0 1px 2px black;
+}
+/* Cores dos Tiers */
+.badge-tier-mini.F { background: #95a5a6; }
+.badge-tier-mini.E { background: #27ae60; }
+.badge-tier-mini.D { background: #2ecc71; }
+.badge-tier-mini.C { background: #3498db; }
+.badge-tier-mini.B { background: #2980b9; }
+.badge-tier-mini.A { background: #9b59b6; }
+.badge-tier-mini.S { background: #f1c40f; }
+.badge-tier-mini.SS { background: #e67e22; }
+
+.info-candidato { flex: 1; display: flex; flex-direction: column; }
+.nome-cand { font-weight: bold; font-size: 0.9em; color: #2c3e50; }
+.bonus-row { font-size: 0.85em; color: #7f8c8d; display: flex; justify-content: space-between; }
+.roxo { color: #8e44ad; }
+.verde { color: #27ae60; }
+
+.bonus-detalhe { font-size: 0.75em; color: #bdc3c7; margin-top: 2px; }
+.buff-raca { color: #27ae60; font-weight: bold; margin-left: 5px; }
+
+.tag-greve-lista {
+    font-size: 0.7em; color: #e74c3c; font-weight: bold; margin-top: 2px;
+}
+.em-greve { opacity: 0.7; border-color: #e74c3c; background: #fff5f5; }
 </style>
