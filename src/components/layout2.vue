@@ -185,17 +185,6 @@ const corTier = (tier) => {
                 <div class="lado-direito-filtros">
                     <div class="botoes-categoria-wrapper"></div>
                 </div>
-                Aqui ainda não sei oque colocar, talvez a fila seja aqui? Talvez botões iguais da taverna de explicaçao de cargos de funcionario, porem aqui oque cada carcaça de monstro da?
-            </div>
-            <div class="mesa-estudos">        
-                <div>
-                    AQUI VAI A MESA DE DESTRINCHAR ITENS, A CARCAÇA DO MONSTRO QUE ESTA SENDO DESTRINCHADO APARECE EM CIMA DA MESA. MESA É UM BACKGROUND. A BARRA DE PROGRESSO FICA EM CIMA DA MESA TAMBÉM, PARTE DE CIMA DA CARCAÇA.
-                </div>
-            </div>
-            <div>
-                AQUI VAI A FILA DE ITENS DESTRINCHADOS, ( 10 carcaças na fila por exemplo), CADA CARCAÇA TEM UM BOTÃO DE CANCELAR DESTRINCHAR. 1 CARCAÇA POR VEZ APENAS, AQUI É APENAS A FILA, QUANDO ACABAR DE DESTRINCHAR UMA CARCAÇA
-                ELE COMEÇA A DESTRINCHAR A PRÓXIMA DA FILA.
-
             </div>
         </div>
         <div class="abas-taverna" v-if="abas && abas.length > 0">
@@ -362,29 +351,5 @@ const corTier = (tier) => {
 
 @media(max-width: 768px) {
     .painel-controle-camaraProcessamento { flex-direction: column; height: auto; }
-}
-
-
-
-
-
-
-
-
-
-
-
-/* --- BOTÃO VOLTAR AO TOPO --- */
-.mesa-estudos {
-    /* O linear-gradient cria a camada escura por cima da imagem */
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/assets/images/bg_biblioteca.png');
-    background-size: cover;
-    background-position: center;
-    border: 2px solid #57606f;
-    border-radius: 12px;
-    padding: 20px;
-    color: white; /* Texto branco para ler no fundo escuro */
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-    margin-top: 30px;
 }
 </style>
