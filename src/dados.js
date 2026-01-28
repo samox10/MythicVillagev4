@@ -128,18 +128,156 @@ export const tabelaCarcacas = [
     id: 'carcaca_javali', nome: 'Carcaça de Javali', 
     tipo: 'recurso', categoria: 'carcaca',
     img: '/assets/icons/carcacas/carcaca_javali.png', 
-    desc: 'Pode ser processada para obter carne e couro.'
+    desc: 'Pode ser processada para obter carne e couro.',
+    tempo: 10, // 10 segundos para testar rápido
+    recursos: { carne: 50, couro: 10 },
+    ambiente: 'Floresta Densa'
   },
   { 
     id: 'carcaca_lobo', nome: 'Carcaça de Lobo', 
     tipo: 'recurso', categoria: 'carcaca',
     img: '/assets/icons/carcacas/carcaca_lobo.png',
-    desc: 'Couro resistente e carne fibrosa.'
+    desc: 'Couro resistente e carne fibrosa.',
+    tempo: 20, // 20 segundos
+    recursos: { carne: 30, couro: 25 },
+    ambiente: 'Montanhas Nevadas'
   },
   { 
     id: 'carcaca_touro', nome: 'Carcaça de Touro', 
     tipo: 'recurso', categoria: 'carcaca',
     img: '/assets/icons/carcacas/carcaca_touro.png',
-    desc: 'Uma enorme fonte de recursos.'
-  }
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro2', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro3', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro4', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro5', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro8', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro9', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro10', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro11', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro12', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro13', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro14', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro15', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro16', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
+  { 
+    id: 'carcaca_touro17', nome: 'Carcaça de Touro', 
+    tipo: 'recurso', categoria: 'carcaca',
+    img: '/assets/icons/carcacas/carcaca_touro.png',
+    desc: 'Uma enorme fonte de recursos.',
+    tempo: 40, // 40 segundos
+    recursos: { carne: 120, couro: 40 },
+    ambiente: 'Planícies'
+  },
 ];
+// ------------------------------------------
+// FIM TABELA DE CARCAÇAS
+// ------------------------------------------

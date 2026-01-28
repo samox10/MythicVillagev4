@@ -138,7 +138,7 @@ export const jogo = reactive({
     alocacaoBiblioteca: [null, null, null], // Slots de estudo na biblioteca
     camaraProcessamento: 0, custoCamaraProcessamento: { madeira: 1, pedra: 1, ouro: 1 }, // Custo inicial da camara de processamento
     alocacaoCamaraProcessamento: [null], // Slots de funcionarios na camara de processamento ( 1 slot por enquanto )
-    processamento: Array(11).fill({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 }), // 10 slots de processamento de carcaças
+    processamento: Array(8).fill({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 }), // 8 slots de processamento de carcaças
 
     casas: 0, custoCasa: { madeira: 50, pedra: 10 },
     construindo: { tipo: null, tempoRestante: 0, tempoTotal: 0 },
@@ -293,6 +293,9 @@ function finalizarCraft(index) {
 function processarOffline(segundosOffline) {
     if (segundosOffline <= 0) return;
     
+    // console.log(`Processando ${segundosOffline}s offline...`);
+
+    // --- 1. MINERAÇÃO (Lógica Antiga Mantida) ---
     const minutosOffline = segundosOffline / 60;
     const eficiencia = 0.8; // 80%
 
@@ -303,6 +306,72 @@ function processarOffline(segundosOffline) {
             jogo.minerios[m.id] = Math.min((jogo.minerios[m.id] || 0) + Math.floor(totalGerado), limites.recursos);
         }
     });
+
+    // --- 2. CÂMARA DE PROCESSAMENTO (NOVA LÓGICA DE FILA) ---
+    // Clonamos o tempo total disponível para gastar na fila
+    let tempoParaGastar = segundosOffline;
+
+    // Proteção: Limite máximo de 24h offline para não travar o loop se o cara ficar 1 ano fora
+    if (tempoParaGastar > 86400) tempoParaGastar = 86400; 
+
+    // Loop enquanto tivermos tempo E houver algo na mesa ou na fila
+    while (tempoParaGastar > 0) {
+        
+        // 1. Verifica se a mesa está vazia, mas tem alguém na fila esperando
+        if (!jogo.processamento[0].item && jogo.processamento[1].item) {
+            jogo.processamento.shift();
+            jogo.processamento.push({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 });
+        }
+
+        const slotAtual = jogo.processamento[0];
+
+        // Se não tem nada na mesa, acabou o trabalho. Para o loop.
+        if (!slotAtual || !slotAtual.item) break;
+
+        // 2. Calcula velocidade do funcionário (se tiver esfolador, é mais rápido)
+        let velocidade = 1;
+        const idFunc = jogo.alocacaoCamaraProcessamento ? jogo.alocacaoCamaraProcessamento[0] : null;
+        if (idFunc) {
+            const func = jogo.funcionarios.find(f => f.id === idFunc);
+            if (func && func.diasEmGreve === 0) velocidade += func.bonus;
+        }
+
+        // 3. Simula o processamento
+        // Quanto tempo REAL leva para terminar este item?
+        // Ex: Falta 10s, velocidade 2x -> Leva 5 segundos reais.
+        const segundosReaisNecessarios = slotAtual.tempoRestante / velocidade;
+
+        if (tempoParaGastar >= segundosReaisNecessarios) {
+            // CENÁRIO A: Temos tempo para terminar este item COMPLETO
+            
+            // Consome o tempo do nosso banco de horas
+            tempoParaGastar -= segundosReaisNecessarios;
+
+            // Entrega recompensas
+            const receita = tabelaCarcacas.find(c => c.id === slotAtual.item);
+            if (receita) {
+                jogo.comida += (receita.recursos.carne || 0);
+                jogo.couro = Math.min(jogo.couro + (receita.recursos.couro || 0), limites.recursos);
+            }
+
+            // Remove o item e puxa o próximo (faz a fila andar)
+            jogo.processamento.shift();
+            jogo.processamento.push({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 });
+
+        } else {
+            // CENÁRIO B: O tempo acabou no meio do corte
+            
+            // Avança o progresso o máximo que der
+            const progressoFeito = tempoParaGastar * velocidade;
+            slotAtual.tempoRestante -= progressoFeito;
+            
+            // Atualiza visual da barra (opcional aqui, mas bom pra garantir)
+            slotAtual.progresso = 100 - ((slotAtual.tempoRestante / slotAtual.tempoTotal) * 100);
+
+            // Zera o tempo disponível para sair do loop
+            tempoParaGastar = 0;
+        }
+    }
 }
 // --- NOVA FUNÇÃO DE BUFF RACIAL DO PREFEITO ---
 export function obterBuffRaca(func) {
@@ -794,7 +863,14 @@ export const acoes = {
     hack() { jogo.ouro += 100000000; jogo.madeira += 100000; jogo.comida += 100000; jogo.couro += 1000; Object.keys(jogo.minerios).forEach(k => jogo.minerios[k] += 1000); jogo.poMistico = (jogo.poMistico || 0) + 1000; 
     jogo.pedra_up_comum = (jogo.pedra_up_comum || 0) + 50;
     jogo.pedra_up_rara = (jogo.pedra_up_rara || 0) + 50;
-    jogo.pedra_up_mitica = (jogo.pedra_up_mitica || 0) + 50;},
+    jogo.pedra_up_mitica = (jogo.pedra_up_mitica || 0) + 50;
+    jogo.itens.carcaca_javali = (jogo.itens.carcaca_javali || 0) + 5;
+    jogo.itens.carcaca_lobo = (jogo.itens.carcaca_lobo || 0) + 5;
+    jogo.itens.carcaca_touro = (jogo.itens.carcaca_touro || 0) + 5;
+    jogo.itens.carcaca_touro2 = (jogo.itens.carcaca_touro2 || 0) + 5;
+    jogo.itens.carcaca_touro3 = (jogo.itens.carcaca_touro3 || 0) + 5;
+},
+    
     // HACK DE CONSTRUÇÕES
     hackConstrucoes() {
         // Aumenta o nível dos prédios principais
@@ -812,8 +888,6 @@ export const acoes = {
         
         // Aumenta população máxima (para acompanhar as casas novas)
         jogo.populacaoMax += 4; 
-
-        mostrarAviso("HACK ATIVADO", "Todas as construções subiram de nível! 🏗️", "sucesso");
     },
     // HACK DE RECURSOS
     resetarRecursos() {
@@ -934,7 +1008,7 @@ export function iniciarLoop() {
                 
                 // Calcula velocidade baseada no funcionário alocado
                 let velocidade = 1;
-                const idFunc = jogo.alocacaoCamara[0];
+                const idFunc = jogo.alocacaoCamaraProcessamento ? jogo.alocacaoCamaraProcessamento[0] : null;
                 if (idFunc) {
                     const func = jogo.funcionarios.find(f => f.id === idFunc);
                     if (func) velocidade += func.bonus; // Adiciona bônus do funcionário
@@ -945,11 +1019,11 @@ export function iniciarLoop() {
 
                 // Terminou o processamento?
                 if (slotCarne.tempoRestante <= 0) {
-                    const receita = DADOS_PROCESSAMENTO[slotCarne.item];
+                    const receita = tabelaCarcacas.find(c => c.id === slotCarne.item);
                     if (receita) {
                         // ENTREGAR RECOMPENSAS
-                        jogo.comida += receita.carne;
-                        jogo.couro = Math.min(jogo.couro + receita.couro, limites.recursos);
+                        jogo.comida += (receita.recursos.carne || 0);
+                        jogo.couro = Math.min(jogo.couro + (receita.recursos.couro || 0), limites.recursos);
                         // console.log(`Processado: +${receita.carne} carne, +${receita.couro} couro`);
                     }
                     
