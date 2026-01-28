@@ -32,6 +32,7 @@ body {
   import Taverna from './components/Taverna.vue';
   import Mina from './components/Mina.vue';
   import Ferraria from './components/Ferraria.vue';
+  import CamaraProcessamento from './components/CamaraProcessamento.vue';
   import Inventario from './components/Inventario.vue';
   import Modal from './components/Modal.vue';
   import Biblioteca from './components/Biblioteca.vue';
@@ -157,6 +158,7 @@ body {
             <div v-if="menuAberto === 'producao'" class="dropdown-menu-clean">
                 <button @click="selecionarOpcao('producao', 'mina')">⛏️ Mina</button>
                 <button @click="selecionarOpcao('producao', 'ferraria')">⚔️ Ferraria</button>
+                <button @click="selecionarOpcao('producao', 'camara_processamento')">🗡️ Câmara de Processamento</button>
             </div>
         </Transition>
       </div>
@@ -186,6 +188,7 @@ body {
       
       <Mina v-if="abaAtual === 'mina' && categoriaAtual === 'producao'" />
       <Ferraria v-if="abaAtual === 'ferraria' && categoriaAtual === 'producao'" />
+      <CamaraProcessamento v-if="abaAtual === 'camara_processamento' && categoriaAtual === 'producao'" />
       
       <Taverna v-if="abaAtual === 'geral' && categoriaAtual === 'taverna'" />
       <Inventario v-if="abaAtual === 'itens' && categoriaAtual === 'inventario'" />

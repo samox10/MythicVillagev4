@@ -1,11 +1,18 @@
 import { reactive, computed } from 'vue';
-import { tabelaMinerais, tabelaItens } from './dados.js';
+import { tabelaMinerais, tabelaItens, tabelaCarcacas } from './dados.js';
 import { gerarFuncionario, criarObjetoFuncionario, processarFusao, calcularChancesFusao, ORDEM_TIERS } from './funcionarios.js';
 
+// --- DADOS DE ESTUDO BIBLIOTECA---
 export const DADOS_ESTUDO = {
     'pergaminho_comum': { nome: 'Pergaminho Comum', xp: 10, tempo: 60, cor: '#f1c40f' }, // 60 seg
     'tabula_pedra':     { nome: 'Tábula de Pedra',  xp: 50, tempo: 300, cor: '#95a5a6' }, // 5 min
     'tomo_antigo':      { nome: 'Tomo Criptografado', xp: 200, tempo: 1200, cor: '#8e44ad' } // 20 min
+};
+// --- DADOS DE PROCESSAMENTO DE CARCAÇAS ---
+export const DADOS_PROCESSAMENTO = {
+    'carcaca_javali': { nome: 'Carcaça de Javali', carne: 50, couro: 10, tempo: 30 },
+    'carcaca_lobo':   { nome: 'Carcaça de Lobo',   carne: 30, couro: 25, tempo: 45 },
+    'carcaca_touro':  { nome: 'Carcaça de Touro',  carne: 120, couro: 40, tempo: 120 }
 };
 // --- CONFIGURAÇÃO DOS PRÉDIOS (NOVO) ---
 // Aqui você define as regras de cada prédio em um lugar só.
@@ -59,7 +66,13 @@ const DADOS_CONSTRUCOES = {
     attrCusto: 'custoBiblioteca', // Nome exato do custo no 'jogo'
     multiplicador: 1.6, 
     tempoBase: 20 
-}
+    },
+    camaraProcessamento: { 
+        attrNivel: 'camaraProcessamento', 
+        attrCusto: 'custoCamaraProcessamento', 
+        multiplicador: 1.5, 
+        tempoBase: 30 
+    },
 };
 export const ui = reactive({
     modal: { aberto: false, titulo: '', texto: '', tipo: 'confirmacao', onConfirm: null }
@@ -102,9 +115,12 @@ const alocacaoInicial = {};
 const bancoInicial = {};
 tabelaMinerais.forEach(m => { mineriosIniciais[m.id] = 0; trabalhoInicial[m.id] = 0; timersIniciais[m.id] = 0; });
 const itensIniciais = {}; tabelaItens.forEach(i => itensIniciais[i.id] = 0);
+tabelaCarcacas.forEach(i => itensIniciais[i.id] = 0);
 
 // --- ESTADO DO JOGO ---
 export const jogo = reactive({
+    equipamentos: [],
+    poMistico: 0,
     tempoOciosidadeFila: 0,
     madeira: 100, comida: 100, ouro: 500, ciencia: 0, couro: 0,
     funcionarios: [],
@@ -115,15 +131,19 @@ export const jogo = reactive({
     ultimoDiaContratacao: null,
     
     
-    alocacaoMina: { ...alocacaoInicial }, // Guarda IDs: { pedra: ['id_joao', null], ... }
-    alocacaoBiblioteca: [null, null, null], // <--- ADICIONE ISSO
     armazens: 0, custoArmazem: { madeira: 150, pedra: 50 },
+    alocacaoMina: { ...alocacaoInicial }, // Guarda IDs: { pedra: ['id_joao', null], ... }
     bancoMinerios: { ...bancoInicial },   // Guarda frações de minério (ex: 0.45)
-    biblioteca: 0, custoBiblioteca: { madeira: 300, pedra: 150, ouro: 50 },
+    biblioteca: 0, custoBiblioteca: { madeira: 300, pedra: 150, ouro: 50 },    
+    alocacaoBiblioteca: [null, null, null], // Slots de estudo na biblioteca
+    camaraProcessamento: 0, custoCamaraProcessamento: { madeira: 1, pedra: 1, ouro: 1 }, // Custo inicial da camara de processamento
+    alocacaoCamaraProcessamento: [null], // Slots de funcionarios na camara de processamento ( 1 slot por enquanto )
+    processamento: Array(11).fill({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 }), // 10 slots de processamento de carcaças
+
     casas: 0, custoCasa: { madeira: 50, pedra: 10 },
     construindo: { tipo: null, tempoRestante: 0, tempoTotal: 0 },
     craftando: [], // Mudou de objeto {} para lista []
-    desempregados: 0, lenhadores: 0, cacadores: 0, academicos: 0, mineradores: 0, populacaoMax: 5,
+    desempregados: 0, lenhadores: 0, esfoladores: 0, academicos: 0, mineradores: 0, populacaoMax: 5,
     estudos: [
         { item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 }, // Slot 0 (Principal)
         { item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 }, // Slot 1 (Fila 1)
@@ -246,9 +266,26 @@ function finalizarCraft(index) {
 
     const receita = tabelaItens.find(i => i.id === slot.item);
     if (receita) {
-        // Simplesmente entrega tudo (sem lógica de falha complexa pra simplificar o loop)
-        const qtdRecebida = slot.qtdLote * (receita.qtd || 1);
-        jogo.itens[receita.id] += qtdRecebida;
+        // Verifica se é item de Herói (gera item único com nível)
+        if (receita.categoria === 'heroi') {
+            for (let k = 0; k < slot.qtdLote; k++) {
+                // Cria uma cópia única do item
+                jogo.equipamentos.push({
+                    uid: Date.now() + Math.random(), // ID único para o sistema
+                    id: receita.id,
+                    nome: receita.nome,
+                    nivel: 0, // Começa +0
+                    tipo: receita.tipo, // Importante para o filtro
+                    categoria: 'heroi',
+                    stats: { ...receita.stats }, // Copia os stats base
+                    atributoInativo: receita.atributoInativo // Copia o atributo inativo
+                });
+            }
+        } else {
+            // Se for item comum (Aventureiro), mantém a lógica antiga de pilha
+            const qtdRecebida = slot.qtdLote * (receita.qtd || 1);
+            jogo.itens[receita.id] = (jogo.itens[receita.id] || 0) + qtdRecebida;
+        }
     }
     // Remove da lista pois acabou
     jogo.craftando.splice(index, 1);
@@ -497,14 +534,14 @@ export const acoes = {
         // Se for tudo igual, a profissão final é essa. Se não, é null (aleatória)
         let profissaoFinal = mesmaProf ? profBase : null; 
 
-        // --- VERIFICAÇÃO DE AVENTUREIROS (NOVO) ---
-        // Se todos forem aventureiros (mesmo que classes diferentes), o resultado DEVE ser aventureiro
-        const saoTodosAventureiros = funcs.every(f => f.profissao === 'aventureiro');
+        // --- VERIFICAÇÃO DE HEROIS (NOVO) ---
+        // Se todos forem heróis (mesmo que classes diferentes), o resultado DEVE ser herói
+        const saoTodosHerois = funcs.every(f => f.profissao === 'heroi');
         
         let classeFinal = null;
 
-        if (saoTodosAventureiros) {
-            profissaoFinal = 'aventureiro'; // Força ser aventureiro
+        if (saoTodosHerois) {
+            profissaoFinal = 'heroi'; // Força ser herói
             
             // Verifica se são da mesma CLASSE
             const classeBase = funcs[0].classe;
@@ -522,7 +559,7 @@ export const acoes = {
         const racaFinal = mesmaRaca ? racaBase : null;
 
         // --- CÁLCULO DO BÔNUS DE SINERGIA ---
-        // Sinergia se: Mesma Profissão OU Mesma Raça OU Mesma Classe (caso aventureiros)
+        // Sinergia se: Mesma Profissão OU Mesma Raça OU Mesma Classe (caso heróis)
         const temSinergia = mesmaProf || mesmaRaca; // (Classe igual já implica profissão igual, então está coberto)
 
         const bonusFusao = bonusSorteTotal.value * 0.6;
@@ -669,8 +706,24 @@ export const acoes = {
                 
                 const receita = tabelaItens.find(i => i.id === slot.item);
                 if (receita) {
-                    // Entrega todos os itens do lote imediatamente
-                    jogo.itens[receita.id] += ((receita.qtd || 1) * slot.qtdLote);
+                    // CORREÇÃO: Verifica se é Herói para criar item único (igual ao finalizarCraft)
+                    if (receita.categoria === 'heroi') {
+                        for (let k = 0; k < slot.qtdLote; k++) {
+                             jogo.equipamentos.push({
+                                uid: Date.now() + Math.random(), 
+                                id: receita.id,
+                                nome: receita.nome,
+                                nivel: 0, 
+                                tipo: receita.tipo,
+                                categoria: 'heroi',
+                                stats: { ...receita.stats },
+                                atributoInativo: receita.atributoInativo
+                            });
+                        }
+                    } else {
+                        // Se for item comum, soma na pilha
+                        jogo.itens[receita.id] = (jogo.itens[receita.id] || 0) + ((receita.qtd || 1) * slot.qtdLote);
+                    }
                 }
                 
                 // Remove da fila
@@ -690,7 +743,7 @@ export const acoes = {
         else if (qtd === -1 && jogo.trabalhoMina[id] > 0) jogo.trabalhoMina[id]--;
     },
     gerenciarTrabalho(prof, qtd) {
-        const mapa = { lenhador: 'lenhadores', minerador: 'mineradores', cacador: 'cacadores', academico: 'academicos' };
+        const mapa = { lenhador: 'lenhadores', minerador: 'mineradores', esfolador: 'esfoladores', academico: 'academicos' };
         const p = mapa[prof];
         if (qtd === -1 && jogo[p] > 0) {
             if (prof === 'minerador' && (jogo.mineradores - mineradoresOcupados.value) <= 0) return mostrarAviso("Erro", "Mineradores trabalhando.");
@@ -738,7 +791,10 @@ export const acoes = {
     },
     pesquisar(tech) { if (!tech.feito && jogo.ciencia >= tech.custo.ciencia) { jogo.ciencia -= tech.custo.ciencia; tech.feito = true; } },
     // HACKS PARA TESTES
-    hack() { jogo.ouro += 100000000; jogo.madeira += 100000; jogo.comida += 100000; jogo.couro += 1000; Object.keys(jogo.minerios).forEach(k => jogo.minerios[k] += 1000); },
+    hack() { jogo.ouro += 100000000; jogo.madeira += 100000; jogo.comida += 100000; jogo.couro += 1000; Object.keys(jogo.minerios).forEach(k => jogo.minerios[k] += 1000); jogo.poMistico = (jogo.poMistico || 0) + 1000; 
+    jogo.pedra_up_comum = (jogo.pedra_up_comum || 0) + 50;
+    jogo.pedra_up_rara = (jogo.pedra_up_rara || 0) + 50;
+    jogo.pedra_up_mitica = (jogo.pedra_up_mitica || 0) + 50;},
     // HACK DE CONSTRUÇÕES
     hackConstrucoes() {
         // Aumenta o nível dos prédios principais
@@ -856,6 +912,55 @@ export function iniciarLoop() {
                 }
             }
         }
+        // -----------------------------------------------------
+        // Fim do sistema de fila da biblioteca
+        // ----------------------------------------------------
+
+        // --- PROCESSAMENTO DE CARCAÇAS (NOVO) ---
+        if (jogo.processamento && jogo.processamento.length > 0) {
+            
+            // Lógica de puxar da fila (Delay de 5s se estiver vazio no centro)
+            if (!jogo.processamento[0].item && jogo.processamento[1].item) {
+                // Usa uma variável temporária para delay ou puxa direto. 
+                // Para simplificar, vamos puxar direto por enquanto:
+                jogo.processamento.shift();
+                jogo.processamento.push({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 });
+            }
+
+            const slotCarne = jogo.processamento[0];
+            
+            // Se tem carcaça sendo processada
+            if (slotCarne && slotCarne.item) {
+                
+                // Calcula velocidade baseada no funcionário alocado
+                let velocidade = 1;
+                const idFunc = jogo.alocacaoCamara[0];
+                if (idFunc) {
+                    const func = jogo.funcionarios.find(f => f.id === idFunc);
+                    if (func) velocidade += func.bonus; // Adiciona bônus do funcionário
+                }
+
+                slotCarne.tempoRestante -= (deltaSegundos * velocidade);
+                slotCarne.progresso = 100 - ((slotCarne.tempoRestante / slotCarne.tempoTotal) * 100);
+
+                // Terminou o processamento?
+                if (slotCarne.tempoRestante <= 0) {
+                    const receita = DADOS_PROCESSAMENTO[slotCarne.item];
+                    if (receita) {
+                        // ENTREGAR RECOMPENSAS
+                        jogo.comida += receita.carne;
+                        jogo.couro = Math.min(jogo.couro + receita.couro, limites.recursos);
+                        // console.log(`Processado: +${receita.carne} carne, +${receita.couro} couro`);
+                    }
+                    
+                    // Remove item atual e puxa a fila
+                    jogo.processamento.shift();
+                    jogo.processamento.push({ item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 });
+                }
+            }
+        }
+
+        // Limites gerais
 
         const lim = limites.recursos;
         
@@ -903,11 +1008,7 @@ export function iniciarLoop() {
         // --- RECURSOS BÁSICOS (COMIDA/MADEIRA) ---
         // Mantido simples (por tick) ou pode usar deltaSegundos também para precisão
         const cons = populacaoTotal.value;
-        const prodCarne = calcularProducaoTotal('cacador') * 2;
-        jogo.comida = Math.max(0, jogo.comida + (prodCarne - cons) * deltaSegundos); // Ajustado para Delta
-        
-        const prodCouro = calcularProducaoTotal('cacador') * 0.2;
-        if (prodCouro > 0) jogo.couro = Math.min(jogo.couro + (prodCouro * deltaSegundos), lim);
+        //jogo.comida = Math.max(0, jogo.comida - (cons * deltaSegundos)); // Consome comida proporcional ao tempo passado
         
         const prodMadeira = calcularProducaoTotal('lenhador');
         if (prodMadeira > 0) {
