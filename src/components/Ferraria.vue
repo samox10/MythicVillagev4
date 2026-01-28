@@ -574,17 +574,17 @@ const corTier = (t) => ({'F':'#8A8A8A','E':'#659665','D':'#71c404','C':'#475fad'
         </div>
     </div>
     <div class="abas-taverna">
-    <button :class="{ ativo: abaAtual === 'fabricacao' }" @click="abaAtual = 'fabricacao'">FABRICAÇÃO</button>
-    
-    <button 
-        :class="{ 'ativo': abaAtual === 'aprimoramento', 'bloqueado': !ferreiroAtivo }" 
-        @click="abaAtual = 'aprimoramento'"
-        :disabled="!ferreiroAtivo"
-        :title="!ferreiroAtivo ? 'Requer um Ferreiro contratado (O Ajudante não sabe aprimorar itens)' : ''">
-        APRIMORAMENTO <span v-if="!ferreiroAtivo" style="margin-left:5px; font-size: 0.9em;">🔒</span>
-    </button>
-    
-</div>
+        <button :class="{ ativo: abaAtual === 'fabricacao' }" @click="abaAtual = 'fabricacao'">FABRICAÇÃO</button>
+        
+        <button 
+            :class="{ 'ativo': abaAtual === 'aprimoramento', 'bloqueado': !ferreiroAtivo }" 
+            @click="abaAtual = 'aprimoramento'"
+            :disabled="!ferreiroAtivo"
+            :title="!ferreiroAtivo ? 'Requer um Ferreiro contratado (O Ajudante não sabe aprimorar itens)' : ''">
+            APRIMORAMENTO <span v-if="!ferreiroAtivo" style="margin-left:5px; font-size: 0.9em;">🔒</span>
+        </button>
+        
+    </div>
     <div v-if="abaAtual === 'fabricacao'">
     <div class="painel-controle-ferraria">
         
@@ -1244,7 +1244,7 @@ const corTier = (t) => ({'F':'#8A8A8A','E':'#659665','D':'#71c404','C':'#475fad'
 .painel-controle-ferraria {
     display: flex; align-items: center; justify-content: space-between;
     background: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 8px;
-    margin: 15px 0; padding: 10px; gap: 15px; height: 180px;
+    margin: 4px 0; padding: 10px; gap: 15px; height: 180px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 .ferreiro-ativo .card-mid { flex: 1; display: flex; align-items: center; padding: 5px 5px 5px 15px; background: #fff; }
