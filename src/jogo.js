@@ -73,6 +73,12 @@ const DADOS_CONSTRUCOES = {
         multiplicador: 1.5, 
         tempoBase: 30 
     },
+    enfermaria: { 
+        attrNivel: 'enfermaria', 
+        attrCusto: 'custoEnfermaria', 
+        multiplicador: 1.5, 
+        tempoBase: 30 
+    },
 };
 export const ui = reactive({
     modal: { aberto: false, titulo: '', texto: '', tipo: 'confirmacao', onConfirm: null }
@@ -144,6 +150,8 @@ export const jogo = reactive({
     construindo: { tipo: null, tempoRestante: 0, tempoTotal: 0 },
     craftando: [], // Mudou de objeto {} para lista []
     desempregados: 0, lenhadores: 0, esfoladores: 0, academicos: 0, mineradores: 0, populacaoMax: 5,
+    enfermaria: 0, custoEnfermaria: { madeira: 400, pedra: 200 },
+    alocacaoEnfermaria: [null], // Slots de funcionarios na enfermaria ( 1 slot por enquanto )
     estudos: [
         { item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 }, // Slot 0 (Principal)
         { item: null, tempoTotal: 0, tempoRestante: 0, progresso: 0 }, // Slot 1 (Fila 1)
@@ -885,6 +893,7 @@ export const acoes = {
         jogo.taverna++;
         jogo.camaraProcessamento++;
         jogo.biblioteca++;
+        jogo.enfermaria++;
         
         // Adiciona casas e armazéns extras
         jogo.casas += 2;

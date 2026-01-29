@@ -40,7 +40,9 @@ const enfermeiroAtivo = computed(() => {
             tier: profissional.tier,
             poder: poderFinal.toFixed(2),
             salario: profissional.salario,
-            frase: profissional.frase
+            frase: profissional.frase,
+            profissao: profissional.profissao,
+            nomeProfissao: profissional.sexo === 'masculino' ? 'Enfermeiro' : 'Enfermeira',
         };
     } 
     // CORREÇÃO: Retorna null se não tiver profissional, para ativar o v-else do Ajudante corretamente
@@ -86,7 +88,7 @@ const formatarNumero = (num) => {
             </button>
         </div>
 
-        <div v-if="abaAtual === 'aba1'">
+        <div v-if="abaAtual === 'tratamento'">
             <div class="painel-controle-camaraProcessamento">
                 
                 <div v-if="enfermeiroAtivo" class="card-funcionario enfermeiro-ativo" :style="{ borderColor: corTier(enfermeiroAtivo.tier) }">
@@ -109,7 +111,7 @@ const formatarNumero = (num) => {
                         <div class="tabela-dados-func">
                             <div class="linha-dado">
                                 <span class="dado-label">Profissão:</span>
-                                <span class="dado-valor capitalize">{{ enfermeiroAtivo.profissao }}</span>
+                                <span class="dado-valor capitalize">{{ enfermeiroAtivo.nomeProfissao }}</span>
                             </div>
                             <div class="linha-dado">
                                 <span class="dado-label">Raça:</span>
@@ -228,7 +230,7 @@ const formatarNumero = (num) => {
 /* --- CARD GENÉRICO (Estrutura) --- */
 .enfermeiro-ativo {
     width: 100%;
-    max-width: 230px; 
+    max-width: 234px; 
     margin: 0;  
     background: #ffffff;
     border-width: 2px; 

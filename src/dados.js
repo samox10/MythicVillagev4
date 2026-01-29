@@ -125,17 +125,21 @@ export const DB_PEDRAS = {
 // ------------------------------------------
 export const tabelaCarcacas = [
   { 
-    id: 'besouro_rinoceronte', nome: 'Besouro Rinoceronte', 
+    id: 'besouro_rinoceronte', nome: 'Besouro Rinoceronte', // NOME DA CARCAÇA
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/monstros/besouro_rinoceronte.png', 
-    imgCorpo: '/assets/monstros/besouro_rinoceronte.png',
+    img: '/assets/monstros/besouro_rinoceronte.png', // IMAGEM DO MONSTRO NOS BOTOES
+    imgCorpo: '/assets/monstros/besouro_rinoceronte.png', // IMAGEM DA CARCAÇA EM CIMA DA MESA DE PROCESSAMENTO
     desc: 'Pode ser processada para obter carne e couro.',
-    tempo: 10, // 10 segundos para testar rápido
-    recursos: { carne: 50, couro: 10 },
-    ambiente: 'Floresta Densa',
-    tamanhoVisual: 200,
-    tamanhoMobile: 150,
-    nivelRequerido: 1
+    tempo: 10, // TEMPO EM SEGUNDOS PARA PROCESSAR ESSA CARCAÇA
+    recursos: { carne: 50, couro: 10 }, // RECURSOS OBTIDOS AO PROCESSAR ESSA CARCAÇA
+    ambiente: 'Floresta Densa', // AMBIENTE ONDE É POSSÍVEL CAÇAR ESSA CARCAÇA
+    tamanhoVisual: 200, // TAMANHO DA CARCAÇA NA MESA DE PROCESSAMENTO (PC)
+    tamanhoMobile: 150, // TAMANHO DA CARCAÇA NA MESA DE PROCESSAMENTO (MOBILE)
+    rotacaoVisual: 20, // ROTAÇÃO DA CARCAÇA NA MESA DE PROCESSAMENTO (PC)
+    rotacaoMobile: 20, // ROTAÇÃO DA CARCAÇA NA MESA DE PROCESSAMENTO (MOBILE)
+    paddingVisual: 165, // POSICIONAMENTO VERTICAL NA MESA DE PROCESSAMENTO (PC) + SOBE - DESCE
+    paddingMobile: 165, // POSICIONAMENTO VERTICAL NA MESA DE PROCESSAMENTO (MOBILE)
+    nivelRequerido: 1 // NÍVEL QUE LIBERA MISSAO PRA CAÇAR ESSA CARCAÇA
   },
   { 
     id: 'tatu_pedra', nome: 'Tatu Pedra', 
@@ -148,6 +152,10 @@ export const tabelaCarcacas = [
     ambiente: 'Montanhas Nevadas',
     tamanhoVisual: 160,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 1
   },
   { 
@@ -161,6 +169,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 300,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 1
   },
   { 
@@ -174,6 +186,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 305,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 1
   },
   { 
@@ -187,6 +203,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 265,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 10
   },
   { 
@@ -200,6 +220,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 269,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 7
   },
   {
@@ -213,6 +237,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 200,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 6
   },
   {
@@ -226,6 +254,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 290,
     tamanhoMobile: 150,
+    rotacaoVisual: -20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 2
   },
   {
@@ -239,6 +271,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 250,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 3
   },
   {
@@ -252,6 +288,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 430,
     tamanhoMobile: 150,
+    rotacaoVisual: 20,
+    rotacaoMobile: 20,
+    paddingVisual: 165,
+    paddingMobile: 165,
     nivelRequerido: 4
   },
   {
@@ -265,6 +305,10 @@ export const tabelaCarcacas = [
     ambiente: 'Planícies',
     tamanhoVisual: 250,
     tamanhoMobile: 150,
+    rotacaoVisual: -25,
+    rotacaoMobile: 20,
+    paddingVisual: 175,
+    paddingMobile: 175,
     nivelRequerido: 5
   }
 ];

@@ -209,7 +209,7 @@ const resultadoFusao = ref(null);
             'heroi': { m: 'Herói', f: 'Heroína' },
             'academico':     { m: 'Acadêmico',   f: 'Acadêmica' },
             'administrador': { m: 'Administrador', f: 'Administradora' },
-            'curandeiro':    { m: 'Curandeiro',  f: 'Curandeira' },
+            'enfermeiro':    { m: 'Enfermeiro',  f: 'Enfermeira' },
             'lorde':         { m: 'Lorde',       f: 'Lady' },
             'tesoureiro':    { m: 'Tesoureiro',  f: 'Tesoureira' }
         };
@@ -222,7 +222,7 @@ const resultadoFusao = ref(null);
         'gerente': 'administrador',
         'prefeito': 'lorde',
         'bancario': 'tesoureiro',
-        'medico': 'curandeiro',
+        'medico': 'enfermeiro',
         'cientista': 'academico'
     };
     // Se estiver no mapa, retorna o novo nome. Se não, usa o ID original (ex: minerador)
@@ -277,7 +277,7 @@ const resultadoFusao = ref(null);
       
       // Lista atualizada de proibidos (inclui todos os especiais)
       const proibidos = [
-          'ferreiro', 'administrador', 'lorde', 'tesoureiro', 'curandeiro'
+          'ferreiro', 'administrador', 'lorde', 'tesoureiro', 'enfermeiro'
       ];
       
       const lista = jogo.funcionarios.filter(f => {
@@ -380,7 +380,7 @@ const fecharResultadoFusao = () => {
       { id: 'bancario', nome: 'Tesoureiro', req: 2, desc: 'Gera juros sobre o seu ouro total.', stat: 'Finanças: % de ouro gerado por hora.' },
       { id: 'ferreiro', nome: 'Ferreiro', req: 3, desc: 'Reduz o tempo de fabricação de itens.', stat: 'Produtividade: % de redução no tempo de craft.' },
       { id: 'prefeito', nome: 'Lorde', req: 4, desc: 'Reduz custos de construções e buffa a própria raça.', stat: 'Gestão: % de desconto em construções + Buff Racial.' },
-      { id: 'medico', nome: 'Curandeiro', req: 5, desc: 'Cura feridos mais rápido.', stat: 'Medicina: % de velocidade na recuperação.' },
+      { id: 'medico', nome: 'Enfermeiro', req: 5, desc: 'Cura feridos mais rápido.', stat: 'Medicina: % de velocidade na recuperação.' },
       { id: 'gerente', nome: 'Administrador', req: 6, desc: 'Influencia a Guilda dos Trabalhadores para atrair melhores candidatos.', stat: 'Influência: Aumenta a sorte no recrutamento e fusão.' }    
   ];
   // --- CONTROLE DO CATÁLOGO ---
@@ -413,7 +413,7 @@ const fecharResultadoFusao = () => {
   const labelsEspeciais = {
       administrador: 'Influência', // Alterado de 'gerente'
       batedor: 'Percepção',
-      curandeiro: 'Medicina',      // Alterado de 'medico'
+      enfermeiro: 'Medicina',      // Alterado de 'medico'
       ferreiro: 'Produtividade',
       lorde: 'Gestão',             // Alterado de 'prefeito'
       tesoureiro: 'Finanças',      // Alterado de 'bancario'

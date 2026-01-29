@@ -97,6 +97,47 @@ const getTamanhoMonstro = (id) => {
     // Senão, usa o tamanho de Desktop (ou 220 padrão)
     return c.tamanhoVisual ? c.tamanhoVisual : 220;
 };
+// 1. Função para pegar a ROTAÇÃO (PC ou Mobile)
+const getRotacaoMonstro = (id) => {
+    // Se não tiver monstro, retorna a rotação padrão (-20 graus)
+    if (!id) return -20;
+    
+    const c = tabelaCarcacas.find(x => x.id === id);
+    if (!c) return -20;
+
+    // Se for Mobile E tiver configuração mobile, usa ela
+    if (isMobile.value && c.rotacaoMobile !== undefined) {
+        return c.rotacaoMobile;
+    }
+    // Se for PC E tiver configuração PC, usa ela
+    if (!isMobile.value && c.rotacaoVisual !== undefined) {
+        return c.rotacaoVisual;
+    }
+
+    // Se não tiver nada configurado, usa o padrão antigo (-20)
+    return -20;
+};
+
+// 2. Função para pegar o PADDING/ALTURA DA MESA (PC ou Mobile)
+const getPaddingMesa = (id) => {
+    // Valores padrão atuais do seu CSS (165px PC / 92px Mobile)
+    const padraoPC = 165;
+    const padraoMobile = 92;
+
+    if (!id) return isMobile.value ? padraoMobile : padraoPC;
+
+    const c = tabelaCarcacas.find(x => x.id === id);
+    if (!c) return isMobile.value ? padraoMobile : padraoPC;
+
+    if (isMobile.value && c.paddingMobile !== undefined) {
+        return c.paddingMobile;
+    }
+    if (!isMobile.value && c.paddingVisual !== undefined) {
+        return c.paddingVisual;
+    }
+
+    return isMobile.value ? padraoMobile : padraoPC;
+};
 
 // Função para adicionar carcaça na fila (clique no botão)
 const adicionarFila = (carcaca) => {
@@ -387,13 +428,17 @@ const paginaAnterior = () => {
                     </div>
                 </div>
             </div>
-            <div class="mesa-processamento">        
+            <div class="mesa-processamento" 
+                 :style="{ paddingBottom: getPaddingMesa(jogo.processamento[0]?.item) + 'px' }">        
 
                 <div v-if="jogo.processamento[0] && jogo.processamento[0].item" class="monstro-na-mesa">
                     <img 
                         :src="getImagemCorpo(jogo.processamento[0].item)" 
                         class="img-monstro-mesa" 
-                        :style="{ width: getTamanhoMonstro(jogo.processamento[0].item) + 'px' }"
+                        :style="{ 
+                            width: getTamanhoMonstro(jogo.processamento[0].item) + 'px',
+                            transform: `rotate(${getRotacaoMonstro(jogo.processamento[0].item)}deg) scale(1.1)`
+                        }"
                     >
                 </div>
 
@@ -403,7 +448,7 @@ const paginaAnterior = () => {
                 </div>
 
                 <div v-else class="aviso-mesa-vazia">
-                    <span style="opacity: 0.5; font-size: 3em;">🔪</span>
+                    <span style="font-size: 4em;">🔪</span>
                     <p>Aguardando carcaça...</p>
                 </div>
             </div>
@@ -614,8 +659,8 @@ const paginaAnterior = () => {
     justify-content: flex-end; 
     
     /* MUDANÇA 1: Aumentei de 110px para 145px. 
-       Isso vai empurrar o monstro bem mais para o "meio" da mesa. */
-    padding-bottom: 165px; 
+       Isso vai empurrar o monstro bem mais para o "meio" da mesa.
+    padding-bottom: 165px;  */
     
     margin-bottom: 15px;
     margin-top: 15px;
@@ -638,15 +683,15 @@ const paginaAnterior = () => {
     
     /* MUDANÇA 2: Adicionei esta linha.
        rotate(-10deg): Gira levemente para esquerda para acompanhar a mesa.
-       scale(1.1): Aumenta um pouquinho o tamanho para preencher melhor a pedra. */
-    transform: rotate(-20deg) scale(1.1);
+       scale(1.1): Aumenta um pouquinho o tamanho para preencher melhor a pedra.
+    transform: rotate(-20deg) scale(1.1); */
 
     filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4));
     animation: fadeIn 0.5s ease;
 }
 
 .aviso-mesa-vazia {
-    color: rgba(255,255,255,0.4);
+    color: rgba(255, 255, 255, 0.529);
     text-align: center;
     font-weight: bold;
 }

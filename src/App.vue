@@ -33,7 +33,7 @@ body {
   import Mina from './components/Mina.vue';
   import Ferraria from './components/Ferraria.vue';
   import CamaraProcessamento from './components/CamaraProcessamento.vue';
-  import Inventario from './components/Inventario.vue';
+  import Enfermaria from './components/Enfermaria.vue';
   import Modal from './components/Modal.vue';
   import Biblioteca from './components/Biblioteca.vue';
 
@@ -164,8 +164,8 @@ body {
       </div>
 
       <div class="nav-item">
-        <button class="nav-btn-clean" :class="{ ativo: categoriaAtual === 'inventario' }" @click="navegarDireto('inventario', 'itens')" title="Seu Inventário">
-          🎒 <span class="nav-label"></span>
+        <button class="nav-btn-clean" :class="{ ativo: categoriaAtual === 'enfermaria' }" @click="navegarDireto('enfermaria', 'itens')" title="Ala médica">
+           <span class="nav-label"></span>
         </button>
       </div>
 
@@ -191,7 +191,7 @@ body {
       <CamaraProcessamento v-if="abaAtual === 'camara_processamento' && categoriaAtual === 'producao'" />
       
       <Taverna v-if="abaAtual === 'geral' && categoriaAtual === 'taverna'" />
-      <Inventario v-if="abaAtual === 'itens' && categoriaAtual === 'inventario'" />
+      <Enfermaria v-if="abaAtual === 'itens' && categoriaAtual === 'enfermaria'" />
       <Biblioteca v-if="abaAtual === 'biblioteca' && categoriaAtual === 'biblioteca'" />
     </div>
 
