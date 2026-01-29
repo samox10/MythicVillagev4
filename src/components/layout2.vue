@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { jogo, DADOS_PROCESSAMENTO, mostrarAviso, obterBuffRaca } from '../jogo.js';
+import { corTier } from '../funcionarios.js';
 
-const abaAtual = ref('destrinchar');
+const abaAtual = ref('aba1');
 const mostrarBotaoTopo = ref(false);
 
 const verificarScroll = () => {
@@ -59,16 +60,6 @@ const statsEsfolador = computed(() => {
 const formatarNumero = (num) => {
     return num ? num.toLocaleString('pt-BR') : '0';
 };
-
-const corTier = (tier) => {
-    const cores = {
-        'F': '#95a5a6', 'E': '#95a5a6', 
-        'D': '#27ae60', 'C': '#27ae60',
-        'B': '#3498db', 'A': '#9b59b6',
-        'S': '#e67e22', 'SS': '#f1c40f'
-    };
-    return cores[tier] || '#ccc';
-};
 </script>
 
 <template>
@@ -84,18 +75,18 @@ const corTier = (tier) => {
         </div>
         
         <div class="abas-taverna">
-            <button :class="{ ativo: abaAtual === 'destrinchar' }" @click="abaAtual = 'destrinchar'">DESTRINCHAR</button>
+            <button :class="{ ativo: abaAtual === 'aba1' }" @click="abaAtual = 'aba1'">ABA1</button>
             
             <button 
                 :class="{ 'ativo': abaAtual === 'processamento', 'bloqueado': !esfoladorAtivo }" 
                 @click="abaAtual = 'processamento'"
                 :disabled="!esfoladorAtivo"
                 :title="!esfoladorAtivo ? 'Requer um Esfolador contratado (O Ajudante não sabe aprimorar itens)' : ''">
-                PROCESSAR <span v-if="!esfoladorAtivo" style="margin-left:5px; font-size: 0.9em;">🔒</span>
+                ABA2 <span v-if="!esfoladorAtivo" style="margin-left:5px; font-size: 0.9em;">🔒</span>
             </button>
         </div>
 
-        <div v-if="abaAtual === 'destrinchar'">
+        <div v-if="abaAtual === 'aba1'">
             <div class="painel-controle-camaraProcessamento">
                 
                 <div v-if="esfoladorAtivo" class="card-funcionario esfolador-ativo" :style="{ borderColor: corTier(esfoladorAtivo.tier) }">

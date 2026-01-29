@@ -1,7 +1,7 @@
 <script setup>
   import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { jogo, acoes, ui, populacaoTotal, custoContratacao, bonusSorteTotal, limites, obterBuffRaca } from '../jogo.js';
-  import { ORDEM_TIERS, DESBLOQUEIO_POR_NIVEL, obterProbabilidades, CLASSES_RPG } from '../funcionarios.js';
+  import { ORDEM_TIERS, DESBLOQUEIO_POR_NIVEL, obterProbabilidades, CLASSES_RPG, corTier } from '../funcionarios.js';
   
 
     const mostrarBotaoTopo = ref(false);
@@ -420,8 +420,6 @@ const fecharResultadoFusao = () => {
       saqueador: 'Pilhagem'
   };
 
-  const corTier = (t) => ({'F':'#8A8A8A','E':'#659665','D':'#71c404','C':'#475fad','B':'#0233d1','A':'#8e44ad','S':'#f1c40f','SS':'#0fbdd1'}[t] || '#000');
-  
   const getCorSelecao = (tierAtual) => {
       const idx = ORDEM_TIERS.indexOf(tierAtual);
       if (idx !== -1 && idx < ORDEM_TIERS.length - 1) {

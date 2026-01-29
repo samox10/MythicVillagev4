@@ -2,6 +2,7 @@
 import { ref, computed, reactive, onMounted, onUnmounted, watch} from 'vue';
 import { jogo, acoes, dadosItens, obterBuffRaca, mostrarAviso } from '../jogo.js';
 import { DB_PEDRAS } from '../dados.js'; // Importa a tabela de pedras
+import { corTier } from '../funcionarios.js';
 import imgAprendiz from '../assets/icons/pedra-aprendiz.png';
 import imgArtesao from '../assets/icons/pedra-artesao.png';
 import imgGraomestre from '../assets/icons/pedra-graomestre.png';
@@ -559,7 +560,6 @@ const formatarTempoFila = (s) => {
 
 
 // Cores de Tier (mesma da Taverna)
-const corTier = (t) => ({'F':'#8A8A8A','E':'#659665','D':'#71c404','C':'#475fad','B':'#0233d1','A':'#8e44ad','S':'#f1c40f','SS':'#0fbdd1'}[t] || '#000');
 </script>
 
 <template>

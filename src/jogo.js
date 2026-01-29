@@ -309,7 +309,7 @@ function processarOffline(segundosOffline) {
 
     // --- 2. CÂMARA DE PROCESSAMENTO (NOVA LÓGICA DE FILA) ---
     // Clonamos o tempo total disponível para gastar na fila
-    let tempoParaGastar = segundosOffline;
+    let tempoParaGastar = segundosOffline * 0.8;
 
     // Proteção: Limite máximo de 24h offline para não travar o loop se o cara ficar 1 ano fora
     if (tempoParaGastar > 86400) tempoParaGastar = 86400; 
@@ -329,17 +329,11 @@ function processarOffline(segundosOffline) {
         if (!slotAtual || !slotAtual.item) break;
 
         // 2. Calcula velocidade do funcionário (se tiver esfolador, é mais rápido)
-        let velocidade = 1;
-        const idFunc = jogo.alocacaoCamaraProcessamento ? jogo.alocacaoCamaraProcessamento[0] : null;
-        if (idFunc) {
-            const func = jogo.funcionarios.find(f => f.id === idFunc);
-            if (func && func.diasEmGreve === 0) velocidade += func.bonus;
-        }
 
         // 3. Simula o processamento
         // Quanto tempo REAL leva para terminar este item?
         // Ex: Falta 10s, velocidade 2x -> Leva 5 segundos reais.
-        const segundosReaisNecessarios = slotAtual.tempoRestante / velocidade;
+        const segundosReaisNecessarios = slotAtual.tempoRestante;
 
         if (tempoParaGastar >= segundosReaisNecessarios) {
             // CENÁRIO A: Temos tempo para terminar este item COMPLETO
@@ -362,7 +356,7 @@ function processarOffline(segundosOffline) {
             // CENÁRIO B: O tempo acabou no meio do corte
             
             // Avança o progresso o máximo que der
-            const progressoFeito = tempoParaGastar * velocidade;
+            const progressoFeito = tempoParaGastar; // Progresso 1:1;
             slotAtual.tempoRestante -= progressoFeito;
             
             // Atualiza visual da barra (opcional aqui, mas bom pra garantir)
@@ -869,6 +863,17 @@ export const acoes = {
     jogo.itens.carcaca_touro = (jogo.itens.carcaca_touro || 0) + 5;
     jogo.itens.carcaca_touro2 = (jogo.itens.carcaca_touro2 || 0) + 5;
     jogo.itens.carcaca_touro3 = (jogo.itens.carcaca_touro3 || 0) + 5;
+    jogo.itens.javali_da_vila = (jogo.itens.javali_da_vila || 0) + 5;
+    jogo.itens.tatu_pedra = (jogo.itens.tatu_pedra || 0) + 5;
+    jogo.itens.besouro_rinoceronte = (jogo.itens.besouro_rinoceronte || 0) + 5;
+    jogo.itens.javali_de_granito = (jogo.itens.javali_de_granito || 0) + 5;
+    jogo.itens.basilisco = (jogo.itens.basilisco || 0) + 5;
+    jogo.itens.lagarto_de_brasa = (jogo.itens.lagarto_de_brasa || 0) + 5;
+    jogo.itens.sand_scorpion = (jogo.itens.sand_scorpion || 0) + 5;
+    jogo.itens.magma_hyena = (jogo.itens.magma_hyena || 0) + 5;
+    jogo.itens.salamandra = (jogo.itens.salamandra || 0) + 5;
+    jogo.itens.fire_serpe = (jogo.itens.fire_serpe || 0) + 5;
+    jogo.itens.snow_fox = (jogo.itens.snow_fox || 0) + 5;
 },
     
     // HACK DE CONSTRUÇÕES
@@ -878,6 +883,8 @@ export const acoes = {
         jogo.mina++;
         jogo.ferraria++;
         jogo.taverna++;
+        jogo.camaraProcessamento++;
+        jogo.biblioteca++;
         
         // Adiciona casas e armazéns extras
         jogo.casas += 2;
@@ -1008,13 +1015,21 @@ export function iniciarLoop() {
                 
                 // Calcula velocidade baseada no funcionário alocado
                 let velocidade = 1;
-                const idFunc = jogo.alocacaoCamaraProcessamento ? jogo.alocacaoCamaraProcessamento[0] : null;
-                if (idFunc) {
-                    const func = jogo.funcionarios.find(f => f.id === idFunc);
-                    if (func) velocidade += func.bonus; // Adiciona bônus do funcionário
-                }
+                // PROCURA AUTOMÁTICA (Igual à tela): Pega o primeiro esfolador disponível
+                const func = jogo.funcionarios.find(f => f.profissao === 'esfolador' && f.diasEmGreve === 0);
 
-                slotCarne.tempoRestante -= (deltaSegundos * velocidade);
+                if (func) {
+                    // Aplica o bônus simples
+                    velocidade += func.bonus;
+                    
+                    // (Opcional) Se quiser aplicar o buff racial do prefeito aqui também, igual na tela:
+                    const pctBuff = obterBuffRaca(func); 
+                    const multiplicadorRaca = 1 + (pctBuff / 100);
+                    // Ajuste a fórmula de velocidade conforme seu balanceamento desejado
+                    // Exemplo: velocidade = velocidade * multiplicadorRaca;
+                }
+                // Aplica a velocidade ao tempo restante
+                slotCarne.tempoRestante -= deltaSegundos;
                 slotCarne.progresso = 100 - ((slotCarne.tempoRestante / slotCarne.tempoTotal) * 100);
 
                 // Terminou o processamento?

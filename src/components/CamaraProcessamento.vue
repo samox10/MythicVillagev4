@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { jogo, DADOS_PROCESSAMENTO, mostrarAviso, obterBuffRaca } from '../jogo.js';
 import { tabelaCarcacas } from '../dados.js';
+import { corTier } from '../funcionarios.js';
 
 const abaAtual = ref('destrinchar');
 const mostrarBotaoTopo = ref(false);
@@ -13,6 +14,8 @@ const verificarScroll = () => {
 const voltarAoTopo = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
+
+const isMobile = ref(window.innerWidth < 768); // Verifica se é mobile inicialmente
 // --- 1. LÓGICA DO FUNCIONÁRIO ---
 const esfoladorAtivo = computed(() => {
     // Procura o primeiro esfolador que NÃO esteja em greve
@@ -38,6 +41,27 @@ const esfoladorAtivo = computed(() => {
     // CORREÇÃO: Retorna null se não tiver profissional, para ativar o v-else do Ajudante corretamente
     return null;
 });
+// --- LÓGICA DE ORDENAÇÃO DO ESTOQUE ---
+const carcacasOrdenadas = computed(() => {
+    // Cria uma cópia da lista original para organizar
+    return [...tabelaCarcacas].sort((a, b) => {
+        // Pega a quantidade que você tem de cada um
+        const qtdA = jogo.itens[a.id] || 0;
+        const qtdB = jogo.itens[b.id] || 0;
+        
+        const temA = qtdA > 0;
+        const temB = qtdB > 0;
+
+        // 1. Critério: Quem tem estoque (>0) vem primeiro
+        // Se A tem e B não tem, A sobe (-1)
+        if (temA && !temB) return -1;
+        // Se B tem e A não tem, B sobe (1)
+        if (!temA && temB) return 1;
+
+        // 2. Critério: Desempate por Ordem Alfabética
+        return a.nome.localeCompare(b.nome);
+    });
+});
 
 const statsEsfolador = computed(() => {
     // Proteção: Se não tiver esfolador, retorna valor padrão
@@ -52,6 +76,26 @@ const getImagemCarcaca = (id) => {
     if (!id) return '';
     const c = tabelaCarcacas.find(x => x.id === id);
     return c ? c.img : '';
+};
+// Função auxiliar para pegar a imagem do CORPO (para a mesa)
+const getImagemCorpo = (id) => {
+    if (!id) return '';
+    const c = tabelaCarcacas.find(x => x.id === id);
+    // Retorna a imagem do corpo se existir, senão usa o ícone como reserva
+    return c ? (c.imgCorpo || c.img) : '';
+};
+// Função para pegar o tamanho personalizado (ou usar 220 como padrão)
+const getTamanhoMonstro = (id) => {
+    if (!id) return 220;
+    const c = tabelaCarcacas.find(x => x.id === id);
+    if (!c) return 220;
+
+    // LÓGICA NOVA: Se for mobile E o monstro tiver configuração mobile, usa ela
+    if (isMobile.value && c.tamanhoMobile) {
+        return c.tamanhoMobile;
+    }
+    // Senão, usa o tamanho de Desktop (ou 220 padrão)
+    return c.tamanhoVisual ? c.tamanhoVisual : 220;
 };
 
 // Função para adicionar carcaça na fila (clique no botão)
@@ -77,8 +121,18 @@ const adicionarFila = (carcaca) => {
     
     // Configura o slot com os dados da carcaça
     jogo.processamento[slotVazio].item = carcaca.id;
-    jogo.processamento[slotVazio].tempoTotal = carcaca.tempo;
-    jogo.processamento[slotVazio].tempoRestante = carcaca.tempo;
+    // Pega o poder do esfolador ativo (se existir) ou usa 1 (padrão)
+    // Convertemos para Number pois o .poder vem como texto formatado
+    let velocidade = esfoladorAtivo.value ? Number(esfoladorAtivo.value.poder) : 1.0;
+    if (isNaN(velocidade) || velocidade < 1) velocidade = 1.0;
+
+    // Calcula o novo tempo total dividindo pela velocidade
+    const tempoReduzido = carcaca.tempo / velocidade;
+
+    jogo.processamento[slotVazio].tempoTotal = tempoReduzido;
+    jogo.processamento[slotVazio].tempoRestante = tempoReduzido;
+    // ------------------------------------------
+
     jogo.processamento[slotVazio].progresso = 0;
 };
 
@@ -121,16 +175,6 @@ const verDetalhesCarcaca = (carcaca) => {
 const formatarNumero = (num) => {
     return num ? num.toLocaleString('pt-BR') : '0';
 };
-
-const corTier = (tier) => {
-    const cores = {
-        'F': '#95a5a6', 'E': '#95a5a6', 
-        'D': '#27ae60', 'C': '#27ae60',
-        'B': '#3498db', 'A': '#9b59b6',
-        'S': '#e67e22', 'SS': '#f1c40f'
-    };
-    return cores[tier] || '#ccc';
-};
 // --- LÓGICA DE PAGINAÇÃO DO CATÁLOGO ---
 // --- LÓGICA DE PAGINAÇÃO RESPONSIVA ---
 const paginaAtual = ref(1);
@@ -139,7 +183,9 @@ const itensPorPagina = ref(12);
 
 // Função que decide quantos itens mostrar
 const atualizarItensPorPagina = () => {
-    // Se a tela for menor que 768px (celular), usa 8. Senão, usa 12.
+    // 2. Atualiza a variável sempre que a tela mudar
+    isMobile.value = window.innerWidth < 768;
+
     if (window.innerWidth < 768) {
         itensPorPagina.value = 10;
     } else {
@@ -190,8 +236,8 @@ const paginaAnterior = () => {
             <div class="info-nivel">
                 <span class="badge-nivel">Nível {{ jogo.camaraProcessamento }}</span>
             </div>
-        </div>
-        
+        </div>        
+        <!-- ABAS DE PROCESSAMENTO ( DESTRINCHAR / PROCESSAR ) 
         <div class="abas-taverna">
             <button :class="{ ativo: abaAtual === 'destrinchar' }" @click="abaAtual = 'destrinchar'">DESTRINCHAR</button>
             
@@ -203,7 +249,7 @@ const paginaAnterior = () => {
                 PROCESSAR <span v-if="!esfoladorAtivo" style="margin-left:5px; font-size: 0.9em;">🔒</span>
             </button>
         </div>
-
+        -->
         <div v-if="abaAtual === 'destrinchar'">
             <div class="painel-controle-camaraProcessamento">
                 
@@ -320,10 +366,21 @@ const paginaAnterior = () => {
                         <button 
                             v-for="c in carcacasVisiveis" 
                             :key="c.id" 
-                            class="btn-info-monster"
-                            @click="verDetalhesCarcaca(c)"
-                            :title="c.nome">
+                            
+                            :class="['btn-info-monster', { 'bloqueado': c.nivelRequerido > jogo.camaraProcessamento }]"
+                            
+                            @click="c.nivelRequerido > jogo.camaraProcessamento ? null : verDetalhesCarcaca(c)"
+                            
+                            :title="c.nivelRequerido > jogo.camaraProcessamento ? `Bloqueado: Requer Câmara Nível ${c.nivelRequerido}` : c.nome"
+                            
+                            :disabled="c.nivelRequerido > jogo.camaraProcessamento"
+                        >
                             <img :src="c.img" class="img-info-monster">
+                            
+                            <div v-if="c.nivelRequerido > jogo.camaraProcessamento" class="overlay-lock">
+                                <span class="lock-label">NÍVEL</span>
+                                <span class="lock-value">{{ c.nivelRequerido }}</span>
+                            </div>
                         </button>
                         
                         <div v-for="n in (itensPorPagina - carcacasVisiveis.length)" :key="'vazio-'+n" class="slot-falso"></div>
@@ -333,13 +390,16 @@ const paginaAnterior = () => {
             <div class="mesa-processamento">        
 
                 <div v-if="jogo.processamento[0] && jogo.processamento[0].item" class="monstro-na-mesa">
-                    
-                    <div class="barra-progresso-container">
-                        <div class="barra-progresso-fill" :style="{ width: jogo.processamento[0].progresso + '%' }"></div>
-                        <span class="texto-progresso">{{ Math.floor(jogo.processamento[0].tempoRestante) }}s</span>
-                    </div>
+                    <img 
+                        :src="getImagemCorpo(jogo.processamento[0].item)" 
+                        class="img-monstro-mesa" 
+                        :style="{ width: getTamanhoMonstro(jogo.processamento[0].item) + 'px' }"
+                    >
+                </div>
 
-                    <img :src="getImagemCarcaca(jogo.processamento[0].item)" class="img-monstro-mesa">
+                <div v-if="jogo.processamento[0] && jogo.processamento[0].item" class="barra-progresso-container">
+                    <div class="barra-progresso-fill" :style="{ width: jogo.processamento[0].progresso + '%' }"></div>
+                    <span class="texto-progresso">{{ Math.floor(jogo.processamento[0].tempoRestante) }}s</span>
                 </div>
 
                 <div v-else class="aviso-mesa-vazia">
@@ -362,7 +422,7 @@ const paginaAnterior = () => {
                 <h3>🥩 Estoque do Galpão</h3>
                 <div class="grid-botoes-carcacas">
                     <button 
-                        v-for="carcaca in tabelaCarcacas" 
+                        v-for="carcaca in carcacasOrdenadas" 
                         :key="carcaca.id"
                         class="card-selecao-carcaca"
                         @click="adicionarFila(carcaca)"
@@ -536,22 +596,28 @@ const paginaAnterior = () => {
 }
 /* --- MESA DE PROCESSAMENTO --- */
 .mesa-processamento {
-    /* Imagem de Fundo (Galpão/Madeira) */
-    background: url('/assets/ui/bg-madeira-escura.png'), #5d4037;
-    background-size: cover;
-    background-blend-mode: multiply;
+    background: url('/assets/ui/mesa_processamento.png');
+    background-size: contain; 
+    background-position: center bottom;
+    background-repeat: no-repeat;
     
-    border: 4px solid #3e2723;
-    border-radius: 8px;
-    height: 220px; /* Altura fixa para a mesa */
+    background-color: transparent; 
+    border: none; 
+    box-shadow: none;
+
+    height: 350px; 
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    
+    justify-content: flex-end; 
+    
+    /* MUDANÇA 1: Aumentei de 110px para 145px. 
+       Isso vai empurrar o monstro bem mais para o "meio" da mesa. */
+    padding-bottom: 165px; 
+    
     margin-bottom: 15px;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-    overflow: hidden;
     margin-top: 15px;
 }
 
@@ -565,9 +631,18 @@ const paginaAnterior = () => {
 
 /* Imagem Grande do Monstro */
 .img-monstro-mesa {
-    height: 140px;
+    height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    
+    margin: 0; 
+    
+    /* MUDANÇA 2: Adicionei esta linha.
+       rotate(-10deg): Gira levemente para esquerda para acompanhar a mesa.
+       scale(1.1): Aumenta um pouquinho o tamanho para preencher melhor a pedra. */
+    transform: rotate(-20deg) scale(1.1);
+
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4));
+    animation: fadeIn 0.5s ease;
 }
 
 .aviso-mesa-vazia {
@@ -578,13 +653,23 @@ const paginaAnterior = () => {
 
 /* --- BARRA DE PROGRESSO --- */
 .barra-progresso-container {
-    width: 40%;
+    /* Largura da barra */
+    width: 40%; 
     height: 20px;
+    
     background: #2d3436;
     border: 2px solid #000;
     border-radius: 10px;
-    margin-bottom: 14px;
-    position: relative;
+    
+    /* POSICIONAMENTO FIXO NA MESA */
+    position: absolute; /* Permite fixar em um lugar exato */
+    bottom: -10px;       /* Cola no fundo da mesa (logo acima da fila) */
+    left: 50%;          /* Posiciona o início no meio da tela */
+    transform: translateX(-50%); /* Ajusta para ficar perfeitamente centralizado */
+    z-index: 10;        /* Garante que fique acima da imagem do monstro se ela for muito grande */
+    
+    /* Removemos a margem antiga pois não precisamos mais dela */
+    margin-bottom: 0; 
     overflow: hidden;
 }
 
@@ -655,6 +740,26 @@ const paginaAnterior = () => {
 
 /* --- VERSÃO MOBILE (Tela menor que 768px) --- */
 @media (max-width: 768px) {
+    /* --- 1. MESA (Volta ao tamanho visual agradável) --- */
+    .mesa-processamento {
+        /* Altura reduzida para não ocupar muito espaço vertical */
+        height: 200px; 
+        
+        /* 'contain' garante que a imagem da mesa apareça inteira, sem zoom excessivo */
+        background-size: contain; 
+        background-position: center bottom;
+        
+        /* AQUI ESTÁ O TRUQUE DO POSICIONAMENTO: */
+        /* Reduzimos o "colchão" de baixo. Quanto menor esse número, mais baixo o monstro fica. */
+        padding-bottom: 92px; 
+        
+        /* Pequeno ajuste de margem externa */
+        margin-bottom: 10px;
+    }
+    .img-monstro-mesa {
+        max-width: 90%; /* Segurança para não estourar a tela se vc errar o numero no JS */
+        max-height: 150px; /* Opcional: Limite de altura */
+    }
     .fila-processamento {
         gap: 0; /* Remove espaço no celular */
         padding: 6px 12px;
@@ -894,6 +999,81 @@ const paginaAnterior = () => {
     transform: scale(1.1);
     z-index: 2; /* Garante que fique por cima ao dar zoom */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+/* Quando o botão tem a classe .bloqueado */
+.btn-info-monster.bloqueado {
+    position: relative; /* Necessário para posicionar o cadeado */
+    background: #ecf0f1;
+    border-color: #bdc3c7;
+    cursor: not-allowed; /* Mostra o cursor de proibido */
+    opacity: 0.8;
+}
+
+/* Removemos o efeito de zoom/hover se estiver bloqueado */
+.btn-info-monster.bloqueado:hover {
+    transform: none;
+    border-color: #bdc3c7;
+    box-shadow: none;
+}
+
+/* Deixa a imagem do monstro preto e branco */
+.btn-info-monster.bloqueado .img-info-monster {
+    filter: grayscale(100%) opacity(0.6);
+}
+
+/* O ícone do cadeado */
+.overlay-lock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Removemos o quadrado/círculo de fundo */
+    width: 100%;
+    height: 100%;
+    background: transparent; 
+    border: none;
+    box-shadow: none;
+    
+    /* Alinha o texto no centro */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    z-index: 10;
+    pointer-events: none; /* Garante que o clique não bugue */
+}
+.lock-label {
+    font-size: 0.55em; 
+    color: #fff;       /* Texto branco */
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: -2px; /* Gruda no número */
+    
+    /* Sombra preta forte para ler em cima de qualquer cor */
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+}
+
+.lock-value {
+    font-size: 1.1em; 
+    color: #fff;       /* Texto branco */
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: -2px; /* Gruda no número */
+    margin-top: 3px;
+    
+    
+    /* Contorno preto grosso ao redor do número */
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
 }
 
 .img-info-monster {

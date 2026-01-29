@@ -125,158 +125,148 @@ export const DB_PEDRAS = {
 // ------------------------------------------
 export const tabelaCarcacas = [
   { 
-    id: 'carcaca_javali', nome: 'Carcaça de Javali', 
+    id: 'besouro_rinoceronte', nome: 'Besouro Rinoceronte', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_javali.png', 
+    img: '/assets/monstros/besouro_rinoceronte.png', 
+    imgCorpo: '/assets/monstros/besouro_rinoceronte.png',
     desc: 'Pode ser processada para obter carne e couro.',
     tempo: 10, // 10 segundos para testar rápido
     recursos: { carne: 50, couro: 10 },
-    ambiente: 'Floresta Densa'
+    ambiente: 'Floresta Densa',
+    tamanhoVisual: 200,
+    tamanhoMobile: 150,
+    nivelRequerido: 1
   },
   { 
-    id: 'carcaca_lobo', nome: 'Carcaça de Lobo', 
+    id: 'tatu_pedra', nome: 'Tatu Pedra', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_lobo.png',
+    img: '/assets/monstros/tatu_pedra.png', 
+    imgCorpo: '/assets/monstros/tatu_pedra.png',
     desc: 'Couro resistente e carne fibrosa.',
     tempo: 20, // 20 segundos
     recursos: { carne: 30, couro: 25 },
-    ambiente: 'Montanhas Nevadas'
+    ambiente: 'Montanhas Nevadas',
+    tamanhoVisual: 160,
+    tamanhoMobile: 150,
+    nivelRequerido: 1
   },
   { 
-    id: 'carcaca_touro', nome: 'Carcaça de Touro', 
+    id: 'javali_da_vila', nome: 'Javali da Vila', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/javali_da_vila.png', 
+    imgCorpo: '/assets/monstros/javali_da_vila.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 300,
+    tamanhoMobile: 150,
+    nivelRequerido: 1
   },
   { 
-    id: 'carcaca_touro2', nome: 'Carcaça de Touro', 
+    id: 'javali_de_granito', nome: 'Javali de Granito', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/javali_de_granito.png', 
+    imgCorpo: '/assets/monstros/javali_de_granito.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 305,
+    tamanhoMobile: 150,
+    nivelRequerido: 1
   },
   { 
-    id: 'carcaca_touro3', nome: 'Carcaça de Touro', 
+    id: 'basilisco', nome: 'Basilisco', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/basilisco.png', 
+    imgCorpo: '/assets/monstros/basilisco.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 265,
+    tamanhoMobile: 150,
+    nivelRequerido: 10
   },
   { 
-    id: 'carcaca_touro4', nome: 'Carcaça de Touro', 
+    id: 'lagarto_de_brasa', nome: 'Lagarto de Brasa', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/lagarto_de_brasa.png', 
+    imgCorpo: '/assets/monstros/lagarto_de_brasa.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 269,
+    tamanhoMobile: 150,
+    nivelRequerido: 7
   },
-  { 
-    id: 'carcaca_touro5', nome: 'Carcaça de Touro', 
+  {
+    id: 'sand_scorpion', nome: 'Escorpião de Areia', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/sand_scorpion.png', 
+    imgCorpo: '/assets/monstros/sand_scorpion.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 200,
+    tamanhoMobile: 150,
+    nivelRequerido: 6
   },
-  { 
-    id: 'carcaca_touro8', nome: 'Carcaça de Touro', 
+  {
+    id: 'magma_hyena', nome: 'Hiena de Magma', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/magma_hyena.png', 
+    imgCorpo: '/assets/monstros/magma_hyena.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 290,
+    tamanhoMobile: 150,
+    nivelRequerido: 2
   },
-  { 
-    id: 'carcaca_touro9', nome: 'Carcaça de Touro', 
+  {
+    id: 'salamandra', nome: 'Salamandra', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/salamandra.png', 
+    imgCorpo: '/assets/monstros/salamandra.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 250,
+    tamanhoMobile: 150,
+    nivelRequerido: 3
   },
-  { 
-    id: 'carcaca_touro10', nome: 'Carcaça de Touro', 
+  {
+    id: 'fire_serpe', nome: 'Serpe de Fogo', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/fire_serpe.png', 
+    imgCorpo: '/assets/monstros/fire_serpe.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
+    ambiente: 'Planícies',
+    tamanhoVisual: 430,
+    tamanhoMobile: 150,
+    nivelRequerido: 4
   },
-  { 
-    id: 'carcaca_touro11', nome: 'Carcaça de Touro', 
+  {
+    id: 'snow_fox', nome: 'Raposa de Neve', 
     tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
+    img: '/assets/monstros/snow_fox.png', 
+    imgCorpo: '/assets/monstros/snow_fox.png',
     desc: 'Uma enorme fonte de recursos.',
     tempo: 40, // 40 segundos
     recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
-  },
-  { 
-    id: 'carcaca_touro12', nome: 'Carcaça de Touro', 
-    tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
-    desc: 'Uma enorme fonte de recursos.',
-    tempo: 40, // 40 segundos
-    recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
-  },
-  { 
-    id: 'carcaca_touro13', nome: 'Carcaça de Touro', 
-    tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
-    desc: 'Uma enorme fonte de recursos.',
-    tempo: 40, // 40 segundos
-    recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
-  },
-  { 
-    id: 'carcaca_touro14', nome: 'Carcaça de Touro', 
-    tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
-    desc: 'Uma enorme fonte de recursos.',
-    tempo: 40, // 40 segundos
-    recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
-  },
-  { 
-    id: 'carcaca_touro15', nome: 'Carcaça de Touro', 
-    tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
-    desc: 'Uma enorme fonte de recursos.',
-    tempo: 40, // 40 segundos
-    recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
-  },
-  { 
-    id: 'carcaca_touro16', nome: 'Carcaça de Touro', 
-    tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
-    desc: 'Uma enorme fonte de recursos.',
-    tempo: 40, // 40 segundos
-    recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
-  },
-  { 
-    id: 'carcaca_touro17', nome: 'Carcaça de Touro', 
-    tipo: 'recurso', categoria: 'carcaca',
-    img: '/assets/icons/carcacas/carcaca_touro.png',
-    desc: 'Uma enorme fonte de recursos.',
-    tempo: 40, // 40 segundos
-    recursos: { carne: 120, couro: 40 },
-    ambiente: 'Planícies'
-  },
+    ambiente: 'Planícies',
+    tamanhoVisual: 250,
+    tamanhoMobile: 150,
+    nivelRequerido: 5
+  }
 ];
 // ------------------------------------------
 // FIM TABELA DE CARCAÇAS

@@ -479,3 +479,16 @@ export const processarFusao = (tierAtual, nivelTaverna, profissaoFixa, racaFixa,
     }
     return obj;
 };
+export const corTier = (tier) => {
+    const cores = {
+        'F': '#8A8A8A', // Cinza
+        'E': '#659665', // Verde Musgo
+        'D': '#71c404', // Verde Lima
+        'C': '#475fad', // Azul Escuro
+        'B': '#0233d1', // Azul Real
+        'A': '#8e44ad', // Roxo
+        'S': '#f1c40f', // Laranja/Ouro
+        'SS': '#0fbdd1' // Ciano
+    };
+    return cores[tier] || '#000';
+};
