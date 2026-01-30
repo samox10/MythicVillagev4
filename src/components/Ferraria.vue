@@ -634,7 +634,7 @@ const formatarTempoFila = (s) => {
                         Maestria da forja +<span class="verde">{{ statsFerreiro.tempo }}%</span>
                     </div>
                     <div class="frase-efeito">
-                        "{{ ferreiroAtivo.frase || 'Pronto para forjar!' }}"
+                        "{{ ferreiroAtivo.frase || 'Forjando o futuro no fogo!' }}"
                     </div>
                 </div>
             </div>

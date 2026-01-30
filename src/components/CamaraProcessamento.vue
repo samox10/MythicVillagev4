@@ -339,7 +339,7 @@ const paginaAnterior = () => {
                             Velocidade de Corte: <span class="verde">{{ statsEsfolador.tempo }}x</span>
                         </div>
                         <div class="frase-efeito">
-                            "{{ esfoladorAtivo.frase || 'Pronto para o corte!' }}"
+                            "{{ esfoladorAtivo.frase || 'A carne garante o jantar!' }}"
                         </div>
                     </div>
                 </div>

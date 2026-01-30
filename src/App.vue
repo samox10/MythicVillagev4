@@ -165,7 +165,7 @@ body {
 
       <div class="nav-item">
         <button class="nav-btn-clean" :class="{ ativo: categoriaAtual === 'enfermaria' }" @click="navegarDireto('enfermaria', 'itens')" title="Ala médica">
-           <span class="nav-label"></span>
+           <span class="nav-label"><img src="/assets/ui/i_enfermeiro.png" class="nav-icon" alt="🏥"></span>
         </button>
       </div>
 
@@ -465,6 +465,12 @@ body {
     padding: 6px 12px; font-size: 0.75em; border-radius: 6px; cursor: pointer; font-weight: bold;
 }
 .btn-reset-hard:hover { background: #c0392b; color: white; }
+.nav-icon {
+    width: 24px;   /* Tamanho do ícone */
+    height: 24px;
+    object-fit: contain;
+    margin-bottom: 2px;
+}
 
 /* --- TRANSIÇÕES --- */
 .animacao-entrada { animation: fadeIn 0.5s ease; }
