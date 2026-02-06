@@ -1,7 +1,9 @@
 <script setup>
   import { ref, computed, onMounted, onUnmounted } from 'vue';
-  import { jogo, acoes, ui, populacaoTotal, custoContratacao, bonusSorteTotal, limites, obterBuffRaca } from '../jogo.js';
-  import { ORDEM_TIERS, DESBLOQUEIO_POR_NIVEL, obterProbabilidades, CLASSES_RPG, corTier } from '../funcionarios.js';
+  import { jogo, acoes, ui, populacaoTotal, custoContratacao, bonusSorteTotal, obterBuffRaca } from '../jogo.js';
+  import { ORDEM_TIERS, DESBLOQUEIO_POR_NIVEL, obterProbabilidades, CLASSES_RPG, corTier, nomeProfissao } from '../funcionarios.js';
+  import { formatarNumero } from '../utilidades.js';
+
   
 
     const mostrarBotaoTopo = ref(false);
@@ -90,11 +92,6 @@ const resultadoFusao = ref(null);
       return { original, ganho };
   };
   const idiomaAtual = 'pt-BR'; // Se mudar para 'en-US', os pontos viram vírgulas
-  const formatarNumero = (valor) => {
-      if (!valor) return '0';
-      // Agora ele usa a variável em vez do texto fixo
-      return valor.toLocaleString(idiomaAtual);
-  };
   const dadosFusaoPreview = ref(null);
   const abaAtual = ref('contratar'); 
   const ordemAtual = ref('tier'); // Pode ser: 'tier', 'raca', 'profissao'
@@ -196,33 +193,12 @@ const resultadoFusao = ref(null);
       if (!raca) return 'Desconhecida';
       return raca.charAt(0).toUpperCase() + raca.slice(1);
   };
-
-  const nomeProfissao = (func) => {
-      const mapa = {
-            // Mantidos (Sem alteração solicitada)
-            'minerador': { m: 'Minerador', f: 'Mineradora' },
-            'lenhador':  { m: 'Lenhador',  f: 'Lenhadora' },
-            'esfolador':   { m: 'Esfolador',   f: 'Esfoladora' },
-            'ferreiro':  { m: 'Ferreiro',  f: 'Ferreira' },
-            'saqueador': { m: 'Saqueador',  f: 'Saqueadora' },
-            'batedor':   { m: 'Batedor',    f: 'Batedora' },
-            'heroi': { m: 'Herói', f: 'Heroína' },
-            'academico':     { m: 'Acadêmico',   f: 'Acadêmica' },
-            'administrador': { m: 'Administrador', f: 'Administradora' },
-            'enfermeiro':    { m: 'Enfermeiro',  f: 'Enfermeira' },
-            'lorde':         { m: 'Lorde',       f: 'Lady' },
-            'tesoureiro':    { m: 'Tesoureiro',  f: 'Tesoureira' }
-        };
-      const p = func.profissao.toLowerCase();
-      if (!mapa[p]) return p.charAt(0).toUpperCase() + p.slice(1);
-      return func.sexo === 'feminino' ? mapa[p].f : mapa[p].m;
-  };
   const getNomeImagem = (idOriginal) => {
     const mapa = {
         'gerente': 'administrador',
         'prefeito': 'lorde',
         'bancario': 'tesoureiro',
-        'medico': 'enfermeiro',
+        'medico': 'alquimista',
         'cientista': 'academico'
     };
     // Se estiver no mapa, retorna o novo nome. Se não, usa o ID original (ex: minerador)
@@ -277,7 +253,7 @@ const resultadoFusao = ref(null);
       
       // Lista atualizada de proibidos (inclui todos os especiais)
       const proibidos = [
-          'ferreiro', 'administrador', 'lorde', 'tesoureiro', 'enfermeiro'
+          'ferreiro', 'administrador', 'lorde', 'tesoureiro', 'alquimista'
       ];
       
       const lista = jogo.funcionarios.filter(f => {
@@ -349,6 +325,7 @@ const resultadoFusao = ref(null);
             };
             modoFusao.value = 'confirmacao';
         }
+        
     );
 };
 // Função para fechar o resultado e voltar ao início
@@ -380,7 +357,7 @@ const fecharResultadoFusao = () => {
       { id: 'bancario', nome: 'Tesoureiro', req: 2, desc: 'Gera juros sobre o seu ouro total.', stat: 'Finanças: % de ouro gerado por hora.' },
       { id: 'ferreiro', nome: 'Ferreiro', req: 3, desc: 'Reduz o tempo de fabricação de itens.', stat: 'Produtividade: % de redução no tempo de craft.' },
       { id: 'prefeito', nome: 'Lorde', req: 4, desc: 'Reduz custos de construções e buffa a própria raça.', stat: 'Gestão: % de desconto em construções + Buff Racial.' },
-      { id: 'medico', nome: 'Enfermeiro', req: 5, desc: 'Cura feridos mais rápido.', stat: 'Medicina: % de velocidade na recuperação.' },
+      { id: 'medico', nome: 'Alquimista', req: 5, desc: 'Cura feridos mais rápido.', stat: 'Medicina: % de velocidade na recuperação.' },
       { id: 'gerente', nome: 'Administrador', req: 6, desc: 'Influencia a Guilda dos Trabalhadores para atrair melhores candidatos.', stat: 'Influência: Aumenta a sorte no recrutamento e fusão.' }    
   ];
   // --- CONTROLE DO CATÁLOGO ---
@@ -413,7 +390,7 @@ const fecharResultadoFusao = () => {
   const labelsEspeciais = {
       administrador: 'Influência', // Alterado de 'gerente'
       batedor: 'Percepção',
-      enfermeiro: 'Medicina',      // Alterado de 'medico'
+      alquimista: 'Medicina',      // Alterado de 'medico'
       ferreiro: 'Produtividade',
       lorde: 'Gestão',             // Alterado de 'prefeito'
       tesoureiro: 'Finanças',      // Alterado de 'bancario'

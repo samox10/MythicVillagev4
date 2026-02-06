@@ -24,8 +24,12 @@ body {
 </style>
 
 <script setup>
+  import Login from './components/Login.vue';
+  import { definirIdUsuario } from './jogo.js';
   import { ref, onMounted } from 'vue';
-  import { jogo, limites, populacaoTotal, acoes, iniciarLoop, iniciarSave, resetar, dadosMinerais } from './jogo.js';
+  import { jogo, limites, populacaoTotal, acoes, iniciarLoop, iniciarSave, resetar, pararSistemas} from './jogo.js';
+  import { gerarIdSessao, registrarSessao, vigiarSessao } from './supabase.js';
+
   
   // Componentes
   import Cidade from './components/Cidade.vue';
@@ -37,10 +41,68 @@ body {
   import Modal from './components/Modal.vue';
   import Biblioteca from './components/Biblioteca.vue';
 
+  const usuarioLogado = ref(false);
+  // 1. FUNÇAO PRA LOGAR
+  function aoLogar(dadosDoLogin) {
+      // TRUQUE: Se o login vier como objeto (User), pegamos o ID. Se vier texto, usamos o texto.
+      const idUsuario = (typeof dadosDoLogin === 'object' && dadosDoLogin !== null) 
+                        ? dadosDoLogin.id 
+                        : dadosDoLogin;
+
+      console.log("🛡️ Login confirmado para:", idUsuario);
+
+      // --- Salva o ID para o jogo funcionar ---
+      localStorage.setItem('usuario_ativo_id', idUsuario);
+      definirIdUsuario(idUsuario); 
+      usuarioLogado.value = true;
+      
+      // --- Inicia a proteção (Agora usando a tabela correta) ---
+      iniciarProtecao(idUsuario); 
+  }
+  // 2. FUNÇÃO PARA SAIR (DESCONECTAR)
+  const desconectar = () => {
+      if(confirm("Deseja realmente sair?")) {
+          // Limpa do navegador
+          localStorage.removeItem('usuario_ativo_id');
+          // Recarrega a página para voltar ao Login limpo
+          window.location.reload();
+      }
+  };
   // --- ESTADO DA NAVEGAÇÃO ---
   const categoriaAtual = ref('cidade'); 
   const abaAtual = ref('visao_geral');
   const menuAberto = ref(null); 
+
+  // --- SEGURANÇA MULTI-DISPOSITIVO ---
+  const sessaoExpirada = ref(false);
+  const meuSessionId = ref(null);
+
+  // Função que liga o alarme
+  const iniciarProtecao = async (idUsuario) => {
+      if (!idUsuario) return;
+
+      try {
+          meuSessionId.value = gerarIdSessao();
+          await registrarSessao('saves', idUsuario, meuSessionId.value);
+          
+          vigiarSessao('saves', idUsuario, meuSessionId.value, () => {
+              // 1. Mostra a tela preta visual
+              sessaoExpirada.value = true;
+              
+              // 2. Remove o login local
+              localStorage.removeItem('usuario_ativo_id');
+
+              // 3. O PULO DO GATO: Mata o save e o loop imediatamente!
+              pararSistemas(); 
+          });
+      } catch (erro) {
+          console.warn("⚠️ Falha na proteção de sessão:", erro);
+      }
+  };
+
+  const recarregarPagina = () => {
+      window.location.reload();
+  };
 
   const navegarDireto = (cat, aba) => {
     categoriaAtual.value = cat;
@@ -83,18 +145,54 @@ body {
     const sec = s % 60;
     return `${h > 0 ? h + 'h ' : ''}${m}m ${sec}s`;
   };
+  
 
-  onMounted(() => {
-    iniciarLoop();
-    iniciarSave();
+  onMounted(async () => {
+      const idSalvo = localStorage.getItem('usuario_ativo_id');
+      
+      if (idSalvo) {
+          console.log("Login restaurado. Aguardando o jogo carregar...");
+          await definirIdUsuario(idSalvo);
+          usuarioLogado.value = true;
+
+          // ADICIONE ESTA LINHA:
+          iniciarProtecao(idSalvo);
+      } else {
+          jogo.carregando = false; 
+      }
+
+      iniciarLoop();
+      iniciarSave();
   });
 </script>
 
 <template>
+  <div id="app">
+    <div v-if="sessaoExpirada" class="bloqueio-total">
+        <div class="aviso-box">
+            <h1>⚠️ Conexão Encerrada</h1>
+            <p>Você conectou em outro dispositivo ou aba.</p>
+            <button @click="recarregarPagina" class="btn-reconectar">Reconectar Aqui</button>
+        </div>
+    </div>
+
+    <div v-if="jogo.carregando" class="tela-carregamento">
+      <div class="conteudo-carregamento">
+        <h1>Processando a Vila...</h1>
+        <p>Calculando mineração, enfermaria e eventos offline.</p>
+        <div class="spinner">⏳</div>
+      </div>
+    </div>
+  <div v-else>
+  <Login v-if="!usuarioLogado" @aoLogar="aoLogar" />
   <div class="jogo">
     
     <div class="header-geral">
-       <div class="header-bg"></div>
+       <div class="header-bg">
+           <button v-if="usuarioLogado" class="btn-sair-header" @click="desconectar" title="Sair do Jogo">
+               ❌ Sair
+           </button>
+       </div>
     </div>
 
     <div v-if="jogo.construindo.tipo" class="barra-construcao-clean animacao-entrada">
@@ -114,7 +212,7 @@ body {
       <div class="recursos-row principal">
         <div class="res-item" title="Couro"><img src="/assets/ui/icone_couro.png" class="icon-moeda-topo"> {{ Math.floor(jogo.couro) }}</div>
         <div class="res-item" title="Madeira"><img src="/assets/ui/icone_madeira.png" class="icon-moeda-topo"> {{ Math.floor(jogo.madeira).toLocaleString('pt-BR') }}</div>
-        <div class="res-item" title="Comida"><img src="/assets/ui/icone_comida.png" class="icon-moeda-topo"> {{ Math.floor(jogo.comida).toLocaleString('pt-BR') }}</div>
+        <div class="res-item" title="carne"><img src="/assets/ui/icone_carne.png" class="icon-moeda-topo"> {{ Math.floor(jogo.carne).toLocaleString('pt-BR') }}</div>
         <div class="res-item destaque-ouro" title="Ouro"><img src="/assets/ui/icone_goldC.png" class="icon-moeda-topo"> {{ Math.floor(jogo.ouro).toLocaleString('pt-BR') }}</div>
       </div>
 
@@ -165,7 +263,7 @@ body {
 
       <div class="nav-item">
         <button class="nav-btn-clean" :class="{ ativo: categoriaAtual === 'enfermaria' }" @click="navegarDireto('enfermaria', 'itens')" title="Ala médica">
-           <span class="nav-label"><img src="/assets/ui/i_enfermeiro.png" class="nav-icon" alt="🏥"></span>
+           <span class="nav-label"><img src="/assets/ui/i_alquimista.png" class="nav-icon" alt="🏥"></span>
         </button>
       </div>
 
@@ -209,6 +307,8 @@ body {
     </div>
 
   </div>
+  </div>
+  </div>
 </template>
 
 <style scoped>
@@ -234,6 +334,10 @@ body {
   background-size: cover;
   background-position: center;
   border-bottom: 1px solid #bdc3c7; 
+}
+.btn-sair-header:hover {
+    background: #e74c3c; /* Vermelho ao passar o mouse */
+    border-color: #c0392b;
 }
 @media (max-width: 400px) {
   .header-bg { height: 80px; max-height: 80px; }
@@ -478,5 +582,64 @@ body {
 
 .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.2s ease; }
 .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-5px) translateX(-50%); }
+.tela-carregamento {
+  position: fixed; /* Fixa na tela inteira */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.95); /* Fundo preto quase sólido */
+  z-index: 9999; /* Fica em cima de TUDO */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+}
 
+.conteudo-carregamento h1 {
+  color: #f1c40f; /* Cor dourada */
+  margin-bottom: 10px;
+}
+
+.spinner {
+  font-size: 40px;
+  animation: girar 2s infinite linear;
+  margin-top: 20px;
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* --- TELA DE BLOQUEIO DE SESSÃO --- */
+.bloqueio-total {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(44, 62, 80, 0.98); /* Fundo escuro quase sólido */
+  z-index: 10000; /* Acima de tudo, até do loading */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+.aviso-box {
+  text-align: center;
+  background: #fff;
+  color: #2c3e50;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  max-width: 400px;
+  border: 4px solid #c0392b;
+}
+.aviso-box h1 { margin-top: 0; color: #c0392b; }
+.btn-reconectar {
+    background: #c0392b; color: white; border: none;
+    padding: 10px 20px; border-radius: 5px; cursor: pointer;
+    font-size: 1.1em; margin-top: 15px;
+}
+.btn-reconectar:hover { background: #e74c3c; }
 </style>

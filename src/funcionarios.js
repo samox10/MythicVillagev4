@@ -26,7 +26,7 @@ const STATS_ESPECIAIS = {
         F: [0.4, 0.9], E: [0.8, 1.5], D: [1.4, 2.2], C: [2.0, 3.0],
         B: [2.8, 4.0], A: [3.8, 5.2], S: [5.0, 6.5], SS: [6.0, 8.0]
     },
-    enfermeiro: {
+    alquimista: {
         F: [3, 7], E: [6, 12], D: [10, 16], C: [14, 21],
         B: [19, 27], A: [25, 34], S: [32, 40], SS: [38, 45]
     },
@@ -61,8 +61,7 @@ const MATRIZ_CHANCES = {
         7: { F: 28, E: 24, D: 20, C: 16, B: 9, A: 3 },
         8: { F: 26, E: 24, D: 20, C: 18, B: 9, A: 3 },
         9: { F: 23, E: 22, D: 20, C: 20, B: 11, A: 3.96, S: 0.03, SS: 0.01 },
-        //10: { F: 19.94, E: 20, D: 20, C: 20, B: 15, A: 5, S: 0.05, SS: 0.01 }
-        10: { F: 0, E: 0, D: 0, C: 100, B: 0, A: 0, S: 0, SS: 0 }
+        10: { F: 19.94, E: 20, D: 20, C: 20, B: 15, A: 5, S: 0.05, SS: 0.01 }
     },
     elite: {
         2: { F: 30, E: 70 },
@@ -167,6 +166,37 @@ export const CLASSES_RPG = [
     'Cavaleiro', 'Berserker', 'Ladino', 'Arqueiro', 
     'Arquimago', 'Necromante', 'Templário', 'Assassino', 'Demonologista'
 ];
+// 1. O DICIONÁRIO MESTRE (Edite tudo aqui!)
+export const DADOS_PROFISSOES = {
+    // --- CIVIS (Sofrem Acidentes de Trabalho) ---
+    'minerador':     { m: 'Minerador',     f: 'Mineradora',     tipo: 'civil' },
+    'lenhador':      { m: 'Lenhador',      f: 'Lenhadora',      tipo: 'civil' },
+    'esfolador':     { m: 'Esfolador',     f: 'Esfoladora',     tipo: 'civil' },
+    'ferreiro':      { m: 'Ferreiro',      f: 'Ferreira',       tipo: 'civil' },
+    'academico':     { m: 'Acadêmico',     f: 'Acadêmica',      tipo: 'civil' },
+    'administrador': { m: 'Administrador', f: 'Administradora', tipo: 'civil' },
+    'alquimista':    { m: 'Alquimista',    f: 'Alquimista',     tipo: 'civil' },
+    'lorde':         { m: 'Lorde',         f: 'Lady',           tipo: 'civil' },
+    'tesoureiro':    { m: 'Tesoureiro',    f: 'Tesoureira',     tipo: 'civil' },
+    // --- COMBATENTES (Não sofrem acidentes, lutam) ---
+    'saqueador':     { m: 'Saqueador',     f: 'Saqueadora',     tipo: 'combate' },
+    'batedor':       { m: 'Batedor',       f: 'Batedora',       tipo: 'combate' },
+    'heroi':         { m: 'Herói',         f: 'Heroína',        tipo: 'combate' }
+};
+// 2. FUNÇÃO DE NOME (Agora busca no dicionário)
+export const nomeProfissao = (func) => {
+    const p = (func.profissao || '').toLowerCase();
+    const dados = DADOS_PROFISSOES[p];
+
+    // Se a profissão não existir no dicionário, retorna o texto simples capitalizado
+    if (!dados) return p.charAt(0).toUpperCase() + p.slice(1);
+
+    return func.sexo === 'feminino' ? dados.f : dados.m;
+};
+// 3. GERADOR AUTOMÁTICO DE LISTA DE RISCO
+// O computador cria a lista sozinho filtrando quem é 'civil'
+export const profissoesDeRisco = Object.keys(DADOS_PROFISSOES)
+    .filter(chave => DADOS_PROFISSOES[chave].tipo === 'civil');
 const randomRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randomFloat = (min, max) => (Math.random() * (max - min) + min).toFixed(2);
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -203,29 +233,6 @@ export const obterProbabilidades = (nivelTaverna, bonusSorte = 0) => {
     };
 };
 
-// --- GERADORES ---
-
-const gerarBuffsComandante = (tier) => {
-    const mult = { 'F': 1, 'E': 1.2, 'D': 1.5, 'C': 2, 'B': 3, 'A': 5, 'S': 8, 'SS': 15 }[tier] || 1;
-    const tiposPossiveis = ['ataque', 'defesa', 'velocidade', 'xp', 'sorte'];
-    let qtdBuffs = 1;
-    if (tier === 'S') qtdBuffs = 2;
-    if (tier === 'SS') qtdBuffs = 3;
-
-    const tiposEscolhidos = tiposPossiveis.sort(() => 0.5 - Math.random()).slice(0, qtdBuffs);
-    const atributosGerados = {};
-
-    tiposEscolhidos.forEach(tipo => {
-        if (tipo === 'ataque') atributosGerados.ataque = Math.floor(randomRange(5, 10) * mult);
-        if (tipo === 'defesa') atributosGerados.defesa = Math.floor(randomRange(5, 10) * mult);
-        if (tipo === 'velocidade') atributosGerados.velocidade = Math.floor(randomRange(1, 5) * mult);
-        if (tipo === 'xp') atributosGerados.xp = parseFloat((Math.random() * mult).toFixed(1));
-        if (tipo === 'sorte') atributosGerados.sorte = Math.floor(randomRange(1, 3) * mult);
-    });
-
-    return atributosGerados;
-};
-
 export const criarObjetoFuncionario = (tier, nivelTaverna = 1, profissaoFixa = null, racaFixa = null, sexoFixo = null, isPremium = false, classeFixa = null) => {
     const dados = DADOS_TIERS[tier];
 
@@ -239,7 +246,7 @@ export const criarObjetoFuncionario = (tier, nivelTaverna = 1, profissaoFixa = n
         { id: 'tesoureiro', minNivel: 2, minTier: 'E' }, // bancario -> tesoureiro
         { id: 'ferreiro',   minNivel: 3, minTier: 'D' }, // Mantido
         { id: 'lorde',      minNivel: 4, minTier: 'C' }, // prefeito -> lorde
-        { id: 'enfermeiro', minNivel: 5, minTier: 'B' }, // medico -> enfermeiro
+        { id: 'alquimista', minNivel: 5, minTier: 'B' }, // medico -> alquimista
         { id: 'administrador', minNivel: 6, minTier: 'A' } // gerente -> administrador
     ];
 
@@ -271,7 +278,7 @@ export const criarObjetoFuncionario = (tier, nivelTaverna = 1, profissaoFixa = n
     const sulfixoSexo = (sexo === 'masculino') ? 'm' : 'f';
 
     // 2. Lista de profissões que possuem imagem exclusiva na pasta
-    const cargosComImagemPropria = ['tesoureiro', 'ferreiro', 'administrador', 'enfermeiro', 'lorde'];
+    const cargosComImagemPropria = ['tesoureiro', 'ferreiro', 'administrador', 'alquimista', 'lorde'];
 
     let imagemNome = '';
 
@@ -324,7 +331,7 @@ export const criarObjetoFuncionario = (tier, nivelTaverna = 1, profissaoFixa = n
             case 'administrador': descricaoPassiva = "Aumenta chance de Tiers raros."; break;
             case 'lorde': descricaoPassiva = `Reduz custo de construções em ${statPrincipal}%.`; break;
             case 'tesoureiro': descricaoPassiva = `Rende ${statPrincipal}% do ouro atual por hora.`; break;
-            case 'enfermeiro': descricaoPassiva = `Reduz tempo de feridos em ${statPrincipal}%.`; break;
+            case 'alquimista': descricaoPassiva = `Reduz tempo de feridos em ${statPrincipal}%.`; break;
             case 'ferreiro': descricaoPassiva = `Acelera produção na Ferraria em ${statPrincipal}%.`; break;
         }
     }
@@ -467,7 +474,7 @@ export const processarFusao = (tierAtual, nivelTaverna, profissaoFixa, racaFixa,
     else if (rand < (chances.downgrade + chances.manter)) novoTier = tierAtual;
     else novoTier = ORDEM_TIERS[idx + 1];
 
-    const proibidosNaFusao = ['administrador', 'lorde', 'tesoureiro', 'enfermeiro', 'ferreiro'];
+    const proibidosNaFusao = ['administrador', 'lorde', 'tesoureiro', 'alquimista', 'ferreiro'];
     
     // Gera o novo funcionário passando a racaFixa também
     // Nota: Passamos 'null' no sexoFixo para continuar aleatório
